@@ -557,6 +557,11 @@ const AVATAR_LOOK: Record<string, NpcLook> = {
   "barista-cafe": { body: PINE, accent: PAPER, hat: "apron", cheek: MINT },
   "sailor-harbor": { body: GRAPE, accent: PINK, hat: "beanie", cheek: SKY },
   "agent-platform": { body: INK, accent: SUNNY, hat: "tie", cheek: BUBBLE },
+  // pick-your-travel-buddy options — each visually distinct
+  "avatar-wren": { body: GRAPE, accent: SUNNY, hat: "beanie", cheek: BUBBLE },
+  "avatar-fox": { body: CORAL, accent: SKY, hat: "cap", cheek: MINT },
+  "avatar-moth": { body: PINE, accent: BUBBLE, hat: "scarf", cheek: SKY },
+  "avatar-crane": { body: BLUE, accent: PINK, hat: "tie", cheek: SUNNY },
   default: { body: BLUE, accent: MARIGOLD, hat: "cap", cheek: BUBBLE },
 };
 
@@ -628,14 +633,18 @@ export function NPCPortrait({ npcId, name }: { npcId: string; name: string }) {
   };
 
   return (
-    <motion.button
-      type="button"
-      onClick={greet}
+    // Non-interactive on purpose: this is an illustration. Interactive parents
+    // (the Scene's GreetablePortrait, Arrival's avatar picker) supply the real
+    // <button>, so making this a button too would nest buttons (invalid HTML).
+    // The "boop" still fires on hover/tap via framer-motion gesture props.
+    <motion.div
+      onTap={greet}
       onHoverStart={greet}
       animate={reduce ? undefined : { y: [0, -4, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative cursor-pointer rounded-3xl bg-transparent p-0 outline-none focus-visible:ring-4 focus-visible:ring-grape focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-      aria-label={`${name}, a local — say hello`}
+      className="relative"
+      role="img"
+      aria-label={`${name}, a local`}
     >
       <motion.div animate={boop}>
       <svg viewBox="0 0 140 168" width={120} height={144}>
@@ -705,6 +714,6 @@ export function NPCPortrait({ npcId, name }: { npcId: string; name: string }) {
         </g>
       </svg>
       </motion.div>
-    </motion.button>
+    </motion.div>
   );
 }
