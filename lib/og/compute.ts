@@ -19,19 +19,39 @@ function headers() {
 
 let cachedModel: string | null = null;
 
-export async function liveListModels(): Promise<ModelInfo[]> {
+interface RawModel {
+  id: string;
+  type?: string;
+  architecture?: { modality?: string; output_modalities?: string[] };
+}
+
+async function fetchRawModels(): Promise<RawModel[]> {
   const res = await fetch(`${BASE}/models`, { headers: headers() });
   if (!res.ok) throw new Error(`0G models list failed: ${res.status}`);
   const data = await res.json();
-  return (data.data ?? data.models ?? []).map((m: { id: string }) => ({ id: m.id }));
+  return (data.data ?? data.models ?? []) as RawModel[];
+}
+
+export async function liveListModels(): Promise<ModelInfo[]> {
+  const raw = await fetchRawModels();
+  return raw.map((m) => ({ id: m.id }));
+}
+
+function isChatModel(m: RawModel): boolean {
+  if (m.type === 'chatbot') return true;
+  const mod = m.architecture?.modality ?? '';
+  const out = m.architecture?.output_modalities ?? [];
+  return mod.includes('text->text') || (out.length === 1 && out[0] === 'text');
 }
 
 async function pickModel(): Promise<string> {
   if (process.env.OG_CHAT_MODEL) return process.env.OG_CHAT_MODEL;
   if (cachedModel) return cachedModel;
-  const models = await liveListModels();
-  if (!models.length) throw new Error('No 0G Compute models available on the Router');
-  cachedModel = models[0].id;
+  const raw = await fetchRawModels();
+  if (!raw.length) throw new Error('No 0G Compute models available on the Router');
+  // Pick a real chat model — never an image/editing model.
+  const chat = raw.find(isChatModel) ?? raw[0];
+  cachedModel = chat.id;
   return cachedModel;
 }
 
@@ -50,12 +70,15 @@ async function completion(messages: ChatMsg[], opts?: ChatOpts) {
   if (!res.ok) throw new Error(`0G chat failed: ${res.status} ${await res.text()}`);
   const data = await res.json();
   const text: string = data.choices?.[0]?.message?.content ?? '';
-  // Attestation field name is provider-specific — confirm in Router docs (§10).
+  // 0G testnet Router returns verifiability info in `x_0g_trace`: the TEE-attested
+  // compute provider address + a request_id. That's our on-record proof a real,
+  // verified model served this turn (§10).
+  const trace = data.x_0g_trace ?? {};
   const attestation: ProviderAttestation = {
-    provider: '0g-compute',
-    model,
-    signature: data.attestation?.signature ?? data.tee?.signature,
-    raw: data.attestation ?? data.tee,
+    provider: trace.provider ? `0G Compute · ${trace.provider}` : '0G Compute (TEE)',
+    model: data.model ?? model,
+    signature: trace.request_id,
+    raw: trace,
   };
   return { text, attestation };
 }

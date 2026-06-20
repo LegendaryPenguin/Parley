@@ -24,13 +24,30 @@ import type {
 import { mockChat, mockJudge, MOCK_MODELS } from './mock-compute';
 import { mockStorage, mockChain } from './mock-storage';
 
-export const OG_MODE = process.env.OG_MODE ?? process.env.NEXT_PUBLIC_OG_MODE ?? 'mock';
-export const isMock = OG_MODE === 'mock';
+// Compute (chat/judge) and Storage/Chain can be toggled independently so we can
+// run LIVE 0G inference while persistence is still mock (or vice-versa).
+// Compute is server-side (OG_COMPUTE_MODE / OG_MODE). Storage/Chain are
+// client-side (NEXT_PUBLIC_*). `isMock` reflects storage (drives the UI's
+// "demo passage" badge).
+const COMPUTE_MODE = process.env.OG_COMPUTE_MODE ?? process.env.OG_MODE ?? 'mock';
+const STORAGE_MODE =
+  process.env.NEXT_PUBLIC_OG_STORAGE_MODE ??
+  process.env.NEXT_PUBLIC_OG_MODE ??
+  process.env.OG_MODE ??
+  'mock';
+
+const CHAIN_MODE =
+  process.env.NEXT_PUBLIC_OG_CHAIN_MODE ?? process.env.NEXT_PUBLIC_OG_MODE ?? process.env.OG_MODE ?? 'mock';
+
+export const OG_MODE = STORAGE_MODE;
+export const isComputeMock = COMPUTE_MODE === 'mock';
+export const isMock = STORAGE_MODE === 'mock';
+export const isChainMock = CHAIN_MODE === 'mock';
 
 // ---------------- Compute (server-side) ----------------
 
 export async function listModels(): Promise<ModelInfo[]> {
-  if (isMock) return MOCK_MODELS;
+  if (isComputeMock) return MOCK_MODELS;
   const { liveListModels } = await import('./compute');
   return liveListModels();
 }
@@ -39,25 +56,25 @@ export async function chat(
   messages: ChatMsg[],
   opts?: ChatOpts,
 ): Promise<{ text: string; attestation?: ProviderAttestation }> {
-  if (isMock) return mockChat(messages);
+  if (isComputeMock) return mockChat(messages);
   const { liveChat } = await import('./compute');
   return liveChat(messages, opts);
 }
 
 export async function judge(prompt: JudgePrompt): Promise<JudgeResult> {
-  if (isMock) return mockJudge(prompt);
+  if (isComputeMock) return mockJudge(prompt);
   const { liveJudge } = await import('./compute');
   return liveJudge(prompt);
 }
 
 export async function transcribe(audio: Blob): Promise<string> {
-  if (isMock) throw new Error('mock STT unavailable — use browser SpeechRecognition');
+  if (isComputeMock) throw new Error('mock STT unavailable — use browser SpeechRecognition');
   const { liveTranscribe } = await import('./compute');
   return liveTranscribe(audio);
 }
 
 export async function speak(text: string, voiceId?: string): Promise<Blob> {
-  if (isMock) throw new Error('mock TTS unavailable — use speechSynthesis');
+  if (isComputeMock) throw new Error('mock TTS unavailable — use speechSynthesis');
   const { liveSpeak } = await import('./compute');
   return liveSpeak(text, voiceId);
 }
@@ -116,7 +133,7 @@ export async function setAnchorTx(playerId: string, recordHash: string, txHash: 
 // ---------------- Chain (client-side, user signs) ----------------
 
 export async function anchor(recordHash: string): Promise<{ txHash: string }> {
-  if (isMock) return mockChain.anchor(recordHash);
+  if (isChainMock) return mockChain.anchor(recordHash);
   const { liveChain } = await import('./chain');
   return liveChain.anchor(recordHash);
 }
