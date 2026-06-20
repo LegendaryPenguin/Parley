@@ -25,7 +25,7 @@ export function PassportTab({ profile, wordCount }: { profile: PlayerProfile; wo
       <Link
         href="/passport"
         aria-label={`Open passport — level ${profile.level}, ${profile.streakDays} day streak, ${wordCount} words`}
-        className="group relative flex items-center gap-2.5 bg-paper-deep border-[3px] border-ink rounded-md pl-2 pr-3 py-1.5 min-h-[44px] outline-none focus-visible:ring-4 focus-visible:ring-grape/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        className="group relative flex items-center gap-2.5 bg-paper-deep border-[3px] border-ink rounded-md pl-2 pr-3 py-1.5 min-h-[44px] outline-none focus-visible:ring-4 focus-visible:ring-grape focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         style={{ boxShadow: "3px 3px 0 var(--ink)" }}
       >
         {/* page-corner peel — a little dog-eared bookmark that lifts on hover */}

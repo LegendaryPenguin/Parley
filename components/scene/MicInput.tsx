@@ -20,6 +20,8 @@ type SR = {
 const BAR_HEIGHTS = ["35%", "100%", "55%", "85%", "40%", "95%", "50%"];
 
 function InkWaveform({ active }: { active: boolean }) {
+  const reduceMotion = useReducedMotion();
+  const animate = active && !reduceMotion;
   return (
     <div className="flex items-center gap-[3px] h-5" aria-hidden>
       {BAR_HEIGHTS.map((peak, i) => (
@@ -28,9 +30,9 @@ function InkWaveform({ active }: { active: boolean }) {
           className="block w-[3px] rounded-full bg-riso-pink"
           style={{ height: peak }}
           initial={{ scaleY: 0.25 }}
-          animate={active ? { scaleY: [0.25, 1, 0.4] } : { scaleY: 0.25 }}
+          animate={animate ? { scaleY: [0.25, 1, 0.4] } : { scaleY: active ? 1 : 0.25 }}
           transition={
-            active
+            animate
               ? {
                   duration: 0.55 + (i % 3) * 0.12,
                   repeat: Infinity,
@@ -115,8 +117,8 @@ export function MicInput({
   const canSend = !disabled && !!text.trim();
 
   return (
-    <div className="flex items-end gap-2">
-      <div className="relative flex-1">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="relative w-full sm:flex-1">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -128,7 +130,7 @@ export function MicInput({
           }}
           rows={1}
           disabled={disabled}
-          placeholder={listening ? "Listening… keep talking" : placeholder}
+          placeholder={listening ? "Listening — keep going" : placeholder}
           className="w-full resize-none bg-paper border-2 border-ink rounded-sm px-3 py-2.5 pr-14 font-read text-ink placeholder:text-ink-soft/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-50 transition-shadow"
           style={listening ? { boxShadow: "3px 3px 0 var(--riso-pink)" } : undefined}
         />
@@ -150,6 +152,7 @@ export function MicInput({
         </AnimatePresence>
       </div>
 
+      <div className="flex items-end gap-2 shrink-0">
       {supported && (
         <button
           type="button"
@@ -165,19 +168,20 @@ export function MicInput({
           aria-label="Hold to speak"
           aria-pressed={listening}
           title="Hold to speak"
-          className={`relative shrink-0 grid place-items-center w-12 h-12 rounded-sm border-2 border-ink select-none touch-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue focus-visible:ring-offset-2 focus-visible:ring-offset-paper active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`relative shrink-0 grid place-items-center w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-sm border-2 border-ink select-none touch-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue focus-visible:ring-offset-2 focus-visible:ring-offset-paper active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-40 disabled:cursor-not-allowed ${
             listening ? "bg-riso-pink text-paper" : "bg-marigold text-ink hover:bg-sunny"
           }`}
           style={{ boxShadow: listening ? "none" : "3px 3px 0 var(--ink)" }}
         >
-          {/* Pulsing halo invites the press; calms under reduced-motion */}
+          {/* A single halo ping confirms the press; calms under reduced-motion.
+              (No looping — infinite motion is reserved for split-flap/stamp.) */}
           {listening && (
             <motion.span
               aria-hidden
               className="absolute inset-0 rounded-sm border-2 border-riso-pink motion-reduce:hidden"
               initial={{ opacity: 0.6, scale: 1 }}
               animate={{ opacity: 0, scale: 1.5 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "easeOut" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             />
           )}
           {/* The mic itself leans into the rhythm while you talk (still under reduced-motion). */}
@@ -201,12 +205,14 @@ export function MicInput({
         onClick={submit}
         disabled={!canSend}
         aria-label="Send your message"
-        className="shrink-0 font-display font-extrabold uppercase text-sm tracking-wide text-paper px-4 h-12 rounded-sm border-2 border-ink transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue focus-visible:ring-offset-2 focus-visible:ring-offset-paper enabled:active:translate-x-[2px] enabled:active:translate-y-[2px] disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+        className="flex-1 sm:flex-none sm:shrink-0 font-display font-extrabold uppercase text-sm tracking-wide text-paper px-4 h-11 sm:h-12 min-h-[44px] rounded-sm border-2 border-ink transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue focus-visible:ring-offset-2 focus-visible:ring-offset-paper enabled:active:translate-x-[2px] enabled:active:translate-y-[2px] disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
         style={{
           background: "var(--riso-blue)",
           boxShadow: canSend ? "3px 3px 0 var(--ink)" : "none",
         }}
-        // Pops on send; gives a gentle "I'm ready!" wiggle the moment you have something to say.
+        // One quick pop when you've just sent. A single gentle pulse the moment
+        // there's something to send — no looping (infinite motion is reserved for
+        // the split-flap/stamp).
         animate={
           justSent && !reduceMotion
             ? { scale: [1, 1.14, 0.96, 1], rotate: [0, -3, 2, 0] }
@@ -218,12 +224,13 @@ export function MicInput({
           justSent && !reduceMotion
             ? { duration: 0.32, ease: "easeOut" }
             : canSend && !reduceMotion
-              ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
+              ? { duration: 0.4, ease: "easeOut" }
               : { duration: 0.2 }
         }
       >
         Say it
       </motion.button>
+      </div>
     </div>
   );
 }

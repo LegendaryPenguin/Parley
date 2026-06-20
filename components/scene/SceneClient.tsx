@@ -58,7 +58,7 @@ export function SceneClient({ id }: { id: string }) {
       });
       setTurns([{ role: "npc", textTarget: text, ts: Date.now() }]);
     } catch {
-      setError("The local was looking the other way. Tap to try again.");
+      setError("The local turned away for a moment — tap to catch their eye again.");
     } finally {
       setBusy(false);
     }
@@ -104,7 +104,7 @@ export function SceneClient({ id }: { id: string }) {
       }
     } catch (e) {
       setTurns(history); // roll back the optimistic player turn
-      setError(e instanceof Error ? e.message : "The line dropped before the local could answer. Try again — they'll wait.");
+      setError(e instanceof Error ? e.message : "Your words got lost in the noise — tap to say it again, they're still listening.");
     } finally {
       setBusy(false);
     }
@@ -165,7 +165,7 @@ export function SceneClient({ id }: { id: string }) {
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative h-[40vh] min-h-[260px] border-b-2 border-ink overflow-hidden"
+        className="relative h-[50vh] sm:h-[40vh] min-h-[200px] sm:min-h-[260px] border-b-2 border-ink overflow-hidden"
       >
         <SceneBackground id={scene.art.background} alt={`${scene.title} — illustrated scene`} />
         {/* gentle ink wash at the base so the portrait + label read cleanly */}
@@ -217,7 +217,7 @@ export function SceneClient({ id }: { id: string }) {
               animate={{ opacity: 1, y: 0, rotate: -1 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mx-auto max-w-[88%] border-2 border-dashed border-riso-pink rounded-sm px-4 py-3 bg-bubble/50 overprint"
+              className="relative mx-auto max-w-[90%] sm:max-w-[85%] border-2 border-dashed border-riso-pink rounded-sm px-4 py-3 bg-bubble/50 overprint"
             >
               <p className="label-mono text-riso-pink flex items-center gap-1.5">
                 <span aria-hidden>▤</span> from your phrasebook
@@ -230,7 +230,7 @@ export function SceneClient({ id }: { id: string }) {
         {error && (
           <button
             onClick={() => (turns.length === 0 ? openScene() : setError(null))}
-            className="block text-left mx-auto max-w-[88%] w-full border-2 border-coral rounded-sm px-4 py-3 bg-paper hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+            className="block text-left mx-auto max-w-[90%] sm:max-w-[85%] w-full border-2 border-coral rounded-sm px-4 py-3 bg-paper hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
           >
             <p className="label-mono text-coral">tap to try again</p>
             <p className="font-read italic text-ink mt-0.5">{error}</p>
@@ -239,9 +239,9 @@ export function SceneClient({ id }: { id: string }) {
       </div>
 
       {/* input dock — where you say your piece */}
-      <div className="sticky bottom-0 bg-paper border-t-2 border-ink px-4 py-3 space-y-2.5">
+      <div className="sticky bottom-0 bg-paper border-t-2 border-ink px-2 sm:px-4 py-2 sm:py-3 space-y-2.5">
         <MicInput onSend={handleSend} disabled={busy} placeholder={`Say it in ${langLabel(profile.targetLanguage)}…`} />
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
           <button
             onClick={showHint}
             disabled={busy}
@@ -286,7 +286,7 @@ function GreetablePortrait({ npcId, name, reduce }: { npcId: string; name: strin
           : { delay: 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }
       }
       whileTap={reduce ? undefined : { scale: 0.92 }}
-      className="relative drop-shadow-[3px_3px_0_var(--ink)] rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-paper"
+      className="relative drop-shadow-[3px_3px_0_var(--ink)] rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
     >
       <NPCPortrait npcId={npcId} name={name} />
       <AnimatePresence>
@@ -322,8 +322,8 @@ function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
       >
         <p className="label-mono text-riso-blue mb-1 ml-1">{npcName}</p>
         {/* speech bubble from the local — printed, with a tail */}
-        <div className="relative max-w-[85%] bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] overprint">
-          <p className="target-lang text-indigo text-lg leading-snug">{turn.textTarget}</p>
+        <div className="relative max-w-[90%] sm:max-w-[85%] bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] overprint">
+          <p className="target-lang text-indigo text-base sm:text-lg leading-snug">{turn.textTarget}</p>
         </div>
         {/* translate peel — like lifting the corner of a sticker */}
         <motion.button
@@ -361,18 +361,18 @@ function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
       className="flex flex-col items-end"
     >
       <p className="label-mono text-riso-pink mb-1 mr-1">You</p>
-      <div className="max-w-[85%] bg-bubble border-2 border-ink rounded-2xl rounded-br-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)]">
-        <p className="font-read text-ink text-lg leading-snug">{turn.textTarget}</p>
+      <div className="max-w-[90%] sm:max-w-[85%] bg-bubble border-2 border-ink rounded-2xl rounded-br-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)]">
+        <p className="font-read text-ink text-base sm:text-lg leading-snug">{turn.textTarget}</p>
       </div>
       {turn.correction && (
         <motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="max-w-[85%] mt-1.5 mr-0 bg-marigold/20 border border-marigold rounded-sm px-3 py-1.5"
+          className="max-w-[90%] sm:max-w-[85%] mt-1.5 mr-0 bg-marigold/20 border border-marigold rounded-sm px-3 py-1.5"
         >
           <p className="label-mono text-[0.6rem] text-ink/70">a gentle fix</p>
-          <p className="font-read italic text-ink text-sm leading-snug">
+          <p className="font-read italic text-ink text-xs sm:text-sm leading-snug">
             <span aria-hidden className="text-marigold mr-1">✎</span>
             {turn.correction.note}
           </p>
@@ -392,8 +392,20 @@ function Typing({ name, opening, reduce }: { name: string; opening: boolean; red
     >
       <p className="label-mono text-riso-blue mb-1 ml-1">{name}</p>
       <div className="bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] flex items-center gap-2">
+        <motion.span
+          aria-hidden
+          className="text-base select-none"
+          animate={reduce ? undefined : { rotate: [0, 16, -8, 14, 0] }}
+          transition={
+            reduce
+              ? undefined
+              : { duration: 1.4, repeat: Infinity, repeatDelay: 0.4, ease: "easeInOut" }
+          }
+        >
+          {opening ? "👀" : "💬"}
+        </motion.span>
         <span className="label-mono text-ink/60">
-          {opening ? "looks up at you" : "gathering their words"}
+          {opening ? `${name} looks up at you` : `${name} is thinking`}
         </span>
         <span className="flex gap-1" aria-hidden>
           {[0, 1, 2].map((i) => (

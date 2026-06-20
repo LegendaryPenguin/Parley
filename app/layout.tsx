@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Newsreader, Space_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
@@ -26,6 +26,13 @@ const pixel = Press_Start_2P({
   subsets: ["latin"],
   weight: "400",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#ece6da",
+};
 
 export const metadata: Metadata = {
   title: "Parley — learn a language by living in it",

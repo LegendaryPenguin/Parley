@@ -11,6 +11,7 @@ import { SCENES } from "@/lib/content/world";
 import { SplitFlap } from "@/components/design/SplitFlap";
 import { GhostButton, PrimaryButton } from "@/components/design/ui";
 import { Confetti, FloatingShapes, PixelBadge } from "@/components/design/Playful";
+import { NPCPortrait } from "@/components/design/RisoIllustration";
 import type { LanguageCode, Mastery, VocabItem } from "@/lib/types";
 
 // Speak each word in the voice of the language being learned, not always Spanish.
@@ -112,16 +113,27 @@ export default function Phrasebook() {
       </header>
 
       {vocab.length === 0 ? (
-        <div className="relative z-10 grain border-2 border-dashed border-ink/50 rounded-sm p-10 text-center bg-paper/80">
-          <div className="text-5xl mb-3 float-bob" aria-hidden>🗂️</div>
-          <p className="font-read italic text-ink-soft max-w-sm mx-auto">
-            No stickers yet. The market is the place to collect your first words — chat with a
-            stallholder and they&apos;ll start landing here.
-          </p>
-          <div className="mt-5">
-            <PrimaryButton color="var(--marigold)" onClick={() => router.push("/atlas")}>
-              Go collecting
-            </PrimaryButton>
+        <div className="relative z-10 grain overflow-hidden border-2 border-dashed border-ink/50 rounded-sm px-5 py-10 sm:p-12 text-center bg-paper/80">
+          <FloatingShapes />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="float-bob" aria-hidden>
+              <NPCPortrait npcId="vendor-market" name="Rosa" />
+            </div>
+            <PixelBadge color="var(--riso-pink)" className="font-pixel text-[0.6rem] mt-2 mb-3">
+              YOUR SET AWAITS
+            </PixelBadge>
+            <h2 className="font-display text-2xl sm:text-3xl text-indigo leading-tight">
+              Your sticker book is hungry for words!
+            </h2>
+            <p className="font-read italic text-ink-soft max-w-sm mx-auto mt-2">
+              Wander into the market, strike up a chat with a stallholder, and every new word you
+              taste comes home as a shiny sticker right here.
+            </p>
+            <div className="mt-6">
+              <PrimaryButton color="var(--marigold)" onClick={() => router.push("/atlas")}>
+                Go collect your first word →
+              </PrimaryButton>
+            </div>
           </div>
         </div>
       ) : (
@@ -152,22 +164,61 @@ export default function Phrasebook() {
 }
 
 // The "complete the set" meter — a fun progress bar with a roaming pin.
+// When every word is mastered it becomes a celebration: confetti + a spinning medal.
 function CollectionMeter({ total, mastered, pct }: { total: number; mastered: number; pct: number }) {
   const complete = mastered === total;
   const reduce = useReducedMotion();
+  // Fire the confetti burst once, the moment the set is completed.
+  const [burst, setBurst] = useState(false);
+  useEffect(() => {
+    if (!complete) {
+      setBurst(false);
+      return;
+    }
+    setBurst(true);
+    const t = window.setTimeout(() => setBurst(false), 1600);
+    return () => window.clearTimeout(t);
+  }, [complete]);
+
   return (
-    <div className="mt-4 grain border-2 border-ink rounded-sm bg-paper/90 px-4 py-3" style={{ boxShadow: "3px 3px 0 var(--paper-deep)" }}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="label-mono text-indigo">Collection mastered</span>
+    <div
+      className="relative mt-4 grain border-2 border-ink rounded-sm bg-paper/90 px-4 py-3 overflow-hidden"
+      style={{ boxShadow: complete ? "3px 3px 0 var(--pine)" : "3px 3px 0 var(--paper-deep)" }}
+    >
+      <AnimatePresence>{burst && !reduce && <Confetti count={40} />}</AnimatePresence>
+
+      <div className="relative z-10 flex flex-col gap-1.5 mb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        <span className="label-mono text-[0.7rem] sm:text-xs text-indigo inline-flex items-center gap-1.5">
+          {complete && (
+            <motion.span
+              aria-hidden
+              className="text-base sm:text-lg"
+              animate={reduce ? undefined : { rotate: [0, 360] }}
+              transition={reduce ? undefined : { duration: 6, repeat: Infinity, ease: "linear" }}
+            >
+              🏅
+            </motion.span>
+          )}
+          {complete ? "Full set collected!" : "Collection mastered"}
+        </span>
         <motion.span
-          className="font-display font-extrabold text-pine"
+          className="font-display font-extrabold text-sm sm:text-base text-pine inline-flex items-center gap-1"
           animate={complete && !reduce ? { rotate: [0, -4, 4, -3, 0] } : { rotate: 0 }}
           transition={complete && !reduce ? { duration: 0.7, repeat: 2, repeatDelay: 1.4 } : undefined}
         >
-          {mastered}/{total}{complete ? " — full set! ★" : ""}
+          {mastered}/{total}
+          {complete && (
+            <motion.span
+              aria-hidden
+              animate={reduce ? undefined : { scale: [1, 1.3, 1] }}
+              transition={reduce ? undefined : { duration: 1.2, repeat: Infinity, repeatDelay: 0.6 }}
+            >
+              ★
+            </motion.span>
+          )}
         </motion.span>
       </div>
-      <div className="relative h-4 rounded-full border-2 border-ink bg-paper overflow-hidden">
+      <div className="relative z-10 h-4 rounded-full border-2 border-ink bg-paper overflow-hidden">
         <motion.div
           className="absolute inset-y-0 left-0 halftone"
           style={{ background: complete ? "var(--pine)" : "var(--marigold)", color: "var(--ink)" }}
@@ -266,7 +317,7 @@ function VocabCard({ item, index, lang }: { item: VocabItem; index: number; lang
 
       <div className="relative pl-1.5">
         <div className="flex items-start justify-between gap-1">
-          <p className="target-lang text-riso-blue text-xl leading-tight">{item.term}</p>
+          <p className="target-lang text-riso-blue text-lg sm:text-xl leading-tight min-w-0 break-words overflow-hidden">{item.term}</p>
           <motion.span
             className="text-base shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
             aria-hidden
@@ -277,8 +328,8 @@ function VocabCard({ item, index, lang }: { item: VocabItem; index: number; lang
             🔊
           </motion.span>
         </div>
-        {item.reading && <p className="font-mono text-[0.7rem] text-ink/50 leading-tight">{item.reading}</p>}
-        <p className="font-read text-ink-soft leading-snug mt-0.5">{item.meaning}</p>
+        {item.reading && <p className="font-mono text-[0.7rem] text-ink/50 leading-tight break-words overflow-hidden">{item.reading}</p>}
+        <p className="font-read text-ink-soft leading-snug mt-0.5 break-words overflow-hidden">{item.meaning}</p>
 
         <div className="mt-2.5 flex items-center justify-between gap-2">
           <span className="label-mono text-ink/45 truncate">

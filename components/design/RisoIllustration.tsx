@@ -87,11 +87,10 @@ function Sun({ x, y, reduce }: { x: number; y: number; reduce: boolean }) {
         <circle cx={x} cy={y} r={22} fill={SUNNY} />
       </Overprint>
       <circle cx={x} cy={y} r={20} fill={MARIGOLD} stroke={INK} strokeWidth={2} />
-      <motion.g
-        style={{ transformOrigin: `${x}px ${y}px` }}
-        animate={reduce ? undefined : { rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-      >
+      {/* Sun rays: a large rotation reads as restless background noise, so it's
+          static here (brief: large rotations 120s+ or still). `reduce` retained
+          for signature/prop parity across scenes. */}
+      <g style={{ transformOrigin: `${x}px ${y}px` }} aria-hidden={reduce ? true : undefined}>
         {Array.from({ length: 8 }).map((_, i) => {
           const a = (i / 8) * Math.PI * 2;
           return (
@@ -107,7 +106,7 @@ function Sun({ x, y, reduce }: { x: number; y: number; reduce: boolean }) {
             />
           );
         })}
-      </motion.g>
+      </g>
     </g>
   );
 }
@@ -144,15 +143,14 @@ function MarketScene() {
         const y = 70 + Math.sin(t * Math.PI) * 30;
         const c = [PINK, MARIGOLD, PINE, GRAPE, SKY][i % 5];
         return (
-          <motion.path
+          // Bunting is static: 13 looping flags fought the butterfly for
+          // attention. The butterfly is this scene's single bold beat.
+          <path
             key={i}
             d={`M${x - 8} ${y} L${x + 8} ${y} L${x} ${y + 14} Z`}
             fill={c}
             stroke={INK}
             strokeWidth={1}
-            style={{ transformOrigin: `${x}px ${y}px` }}
-            animate={reduce ? undefined : { rotate: [-3, 3, -3] }}
-            transition={{ duration: 3 + (i % 4), repeat: Infinity, ease: "easeInOut" }}
           />
         );
       })}
@@ -256,13 +254,9 @@ function BorderScene() {
       <text x="200" y="98" textAnchor="middle" fontFamily="var(--font-space-mono)" fontSize="13" fill={PAPER} letterSpacing="4">
         CONTROL
       </text>
-      {/* window with little globe lamp */}
+      {/* window with little globe lamp (static — barrier is the bold beat) */}
       <rect x="138" y="124" width="124" height="60" rx="4" fill={SKY} opacity={0.7} stroke={INK} strokeWidth={2} />
-      <motion.circle
-        cx="160" cy="120" r="6" fill={MARIGOLD} stroke={INK} strokeWidth={1.5}
-        animate={reduce ? undefined : { opacity: [1, 0.5, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
+      <circle cx="160" cy="120" r="6" fill={MARIGOLD} stroke={INK} strokeWidth={1.5} />
       {/* stamp emblem in window */}
       <circle cx="200" cy="154" r="16" fill="none" stroke={INK} strokeWidth={2} strokeDasharray="3 3" />
       <path d="M192 154 l5 6 l11 -12" fill="none" stroke={PINE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
@@ -300,18 +294,14 @@ function CafeScene() {
         <rect key={x} x={x} y={0} width={25} height={150} fill={PINK} opacity={0.12} />
       ))}
 
-      {/* hanging pendant lamps */}
-      {[110, 200, 290].map((x, i) => (
+      {/* hanging pendant lamps (static — curling steam is the bold beat) */}
+      {[110, 200, 290].map((x) => (
         <g key={x}>
           <line x1={x} y1={0} x2={x} y2={34} stroke={INK} strokeWidth={1.5} />
-          <motion.g
-            style={{ transformOrigin: `${x}px 0px` }}
-            animate={reduce ? undefined : { rotate: [-2, 2, -2] }}
-            transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut" }}
-          >
+          <g>
             <path d={`M${x - 14} 50 Q${x} 30 ${x + 14} 50 Z`} fill={MARIGOLD} stroke={INK} strokeWidth={1.5} />
             <ellipse cx={x} cy={50} rx={14} ry={4} fill={SUNNY} opacity={0.8} />
-          </motion.g>
+          </g>
         </g>
       ))}
 
@@ -383,22 +373,16 @@ function HarborScene() {
       <rect y="170" width="400" height="110" fill={BLUE} opacity={0.32} />
       <Sun x={64} y={52} reduce={!!reduce} />
 
-      {/* drifting clouds */}
+      {/* drifting clouds (static — sailboat + waves carry this scene) */}
       {[
         { x: 140, y: 56, s: 1 },
         { x: 300, y: 38, s: 0.8 },
       ].map((c, i) => (
-        <motion.g
-          key={i}
-          animate={reduce ? undefined : { x: [0, 18, 0] }}
-          transition={{ duration: 16 + i * 6, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <g transform={`translate(${c.x},${c.y}) scale(${c.s})`}>
-            <ellipse cx="0" cy="0" rx="22" ry="12" fill={PAPER} stroke={INK} strokeWidth={1.5} />
-            <ellipse cx="18" cy="2" rx="14" ry="9" fill={PAPER} stroke={INK} strokeWidth={1.5} />
-            <ellipse cx="-16" cy="3" rx="12" ry="8" fill={PAPER} stroke={INK} strokeWidth={1.5} />
-          </g>
-        </motion.g>
+        <g key={i} transform={`translate(${c.x},${c.y}) scale(${c.s})`}>
+          <ellipse cx="0" cy="0" rx="22" ry="12" fill={PAPER} stroke={INK} strokeWidth={1.5} />
+          <ellipse cx="18" cy="2" rx="14" ry="9" fill={PAPER} stroke={INK} strokeWidth={1.5} />
+          <ellipse cx="-16" cy="3" rx="12" ry="8" fill={PAPER} stroke={INK} strokeWidth={1.5} />
+        </g>
       ))}
 
       {/* lighthouse on the left */}
@@ -407,18 +391,16 @@ function HarborScene() {
         <path key={y} d={`M${44 - i * 1.5} ${y} L${56 + i * 1.5} ${y} L${57 + i * 1.5} ${y + 8} L${43 - i * 1.5} ${y + 8} Z`} fill={i % 2 ? CORAL : PAPER} />
       ))}
       <rect x="42" y="98" width="16" height="14" fill={INK} />
-      <motion.circle
-        cx="50" cy="105" r="6" fill={SUNNY}
-        animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* beacon static — small blinking light is restless background noise */}
+      <circle cx="50" cy="105" r="6" fill={SUNNY} />
 
       {/* overprint sea body */}
       <Overprint dx={-3} dy={2} opacity={0.4}>
         <path d="M0 180 q100 -16 200 0 t200 0 v100 H0 Z" fill={PINK} />
       </Overprint>
 
-      {/* waves */}
+      {/* waves — the calm second beat: one slow, unified tidal drift (not four
+          racing lines). Subtle and slow per brief's "rest quiet". */}
       {[196, 220, 244, 266].map((y, i) => (
         <motion.path
           key={y}
@@ -428,8 +410,8 @@ function HarborScene() {
           strokeWidth={2}
           strokeLinecap="round"
           opacity={0.7}
-          animate={reduce ? undefined : { x: [0, 24, 0] }}
-          transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut" }}
+          animate={reduce ? undefined : { x: [0, 16, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
 
@@ -448,15 +430,13 @@ function HarborScene() {
         <path d="M230 104 L246 109 L230 114 Z" fill={PINK} stroke={INK} strokeWidth={1} />
       </motion.g>
 
-      {/* swooping gull */}
-      <motion.path
-        d="M0 0 q8 -8 16 0 q8 -8 16 0"
+      {/* gull, perched in the sky — static so the bobbing boat stays the hero */}
+      <path
+        d="M150 70 q8 -8 16 0 q8 -8 16 0"
         fill="none"
         stroke={INK}
         strokeWidth={2}
         strokeLinecap="round"
-        animate={reduce ? undefined : { x: [320, 60], y: [60, 80], opacity: [0, 1, 1, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "linear", times: [0, 0.1, 0.9, 1] }}
       />
 
       <Speckle color={BLUE} seed={7} count={18} opacity={0.12} />
@@ -535,11 +515,8 @@ function PlatformScene() {
       {/* departure signal */}
       <line x1="370" y1="108" x2="370" y2="78" stroke={INK} strokeWidth={3} />
       <rect x="362" y="62" width="16" height="22" rx="4" fill={INK} />
-      <motion.circle
-        cx="370" cy="68" r="4" fill={PINE}
-        animate={reduce ? undefined : { opacity: [1, 0.2, 1] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* signal lit but static — board flicker is the scene's single bold beat */}
+      <circle cx="370" cy="68" r="4" fill={PINE} />
       <circle cx="370" cy="78" r="4" fill={CORAL} opacity={0.4} />
 
       <Speckle color={INK} seed={9} count={20} opacity={0.13} />
@@ -657,7 +634,7 @@ export function NPCPortrait({ npcId, name }: { npcId: string; name: string }) {
       onHoverStart={greet}
       animate={reduce ? undefined : { y: [0, -4, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative cursor-pointer rounded-3xl bg-transparent p-0 outline-none focus-visible:ring-4 focus-visible:ring-grape/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+      className="relative cursor-pointer rounded-3xl bg-transparent p-0 outline-none focus-visible:ring-4 focus-visible:ring-grape focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       aria-label={`${name}, a local — say hello`}
     >
       <motion.div animate={boop}>
@@ -667,20 +644,16 @@ export function NPCPortrait({ npcId, name }: { npcId: string; name: string }) {
           <ellipse cx="70" cy="156" rx="50" ry="11" fill={PINK} />
         </Overprint>
 
-        {/* halo badge behind, gentle spin */}
-        <motion.g
-          style={{ transformOrigin: "70px 78px" }}
-          animate={reduce ? undefined : { rotate: 360 }}
-          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-          aria-hidden
-        >
+        {/* halo badge behind — static. A large continuous rotation reads as
+            restless noise behind the face; the bob + blink are the bold beats. */}
+        <g aria-hidden>
           {Array.from({ length: 12 }).map((_, i) => {
             const a = (i / 12) * Math.PI * 2;
             return (
               <circle key={i} cx={70 + Math.cos(a) * 56} cy={78 + Math.sin(a) * 56} r={2} fill={look.accent} opacity={0.6} />
             );
           })}
-        </motion.g>
+        </g>
 
         {/* body */}
         <Overprint dx={-2.5} dy={1.5} opacity={0.5}>
@@ -724,16 +697,12 @@ export function NPCPortrait({ npcId, name }: { npcId: string; name: string }) {
         <path d="M58 88 Q70 98 82 88" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
         <path d="M64 92 Q70 95 76 92" fill={CORAL} opacity={0.5} />
 
-        {/* little speech spark, drifts up */}
-        <motion.g
-          animate={reduce ? undefined : { y: [0, -5, 0], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          aria-hidden
-        >
+        {/* little speech spark — static so bob + blink stay the two beats */}
+        <g aria-hidden>
           <path d="M104 40 q10 -2 14 6 q2 8 -8 8 l-6 4 l1 -6 q-6 -6 -1 -12 Z" fill={MARIGOLD} stroke={INK} strokeWidth={1.5} />
           <circle cx="108" cy="48" r="1.4" fill={INK} />
           <circle cx="113" cy="48" r="1.4" fill={INK} />
-        </motion.g>
+        </g>
       </svg>
       </motion.div>
     </motion.button>

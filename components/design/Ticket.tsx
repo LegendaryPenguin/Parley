@@ -23,8 +23,7 @@ export function Ticket({
 
   return (
     <div
-      tabIndex={0}
-      className="group/ticket relative flex isolate overflow-hidden rounded-[3px] text-paper outline-none shadow-[3px_3px_0_rgba(33,28,24,0.22)] transition-transform duration-200 ease-out hover:-rotate-[0.6deg] hover:shadow-[5px_5px_0_rgba(33,28,24,0.28)] focus-visible:-rotate-[0.6deg] focus-visible:shadow-[0_0_0_3px_var(--paper),0_0_0_6px_var(--ink)] motion-reduce:transition-none motion-reduce:hover:rotate-0 motion-reduce:focus-visible:rotate-0"
+      className="group/ticket relative flex isolate overflow-hidden rounded-[3px] text-paper shadow-[3px_3px_0_rgba(33,28,24,0.22)] transition-transform duration-200 ease-out hover:-rotate-[0.6deg] hover:shadow-[5px_5px_0_rgba(33,28,24,0.28)] motion-reduce:transition-none motion-reduce:hover:rotate-0"
       style={{ background: color, clipPath: notch }}
       role="group"
       aria-label={`Ticket${number ? ` number ${number}` : ""}${place ? `, to ${place}` : ""}`}
@@ -51,7 +50,7 @@ export function Ticket({
           Boarding Pass
         </span>
         {number && (
-          <span className="font-display inline-block text-2xl font-extrabold leading-none tracking-tight tabular-nums transition-transform duration-200 ease-out group-hover/ticket:-translate-y-0.5 group-hover/ticket:scale-110 group-focus-visible/ticket:-translate-y-0.5 group-focus-visible/ticket:scale-110 motion-reduce:transition-none motion-reduce:group-hover/ticket:translate-y-0 motion-reduce:group-hover/ticket:scale-100">
+          <span className="font-display inline-block text-2xl font-extrabold leading-none tracking-tight tabular-nums transition-transform duration-200 ease-out group-hover/ticket:-translate-y-0.5 group-hover/ticket:scale-110 motion-reduce:transition-none motion-reduce:group-hover/ticket:translate-y-0 motion-reduce:group-hover/ticket:scale-100">
             <span className="align-top text-[0.55em] font-bold opacity-70">№</span>
             {number}
           </span>
@@ -61,7 +60,7 @@ export function Ticket({
       {/* ── PERFORATION SEAM: punched dots you'd tear along ── */}
       <div aria-hidden className="relative flex flex-col items-center justify-evenly py-2">
         <span
-          className="h-full w-px opacity-55 transition-opacity duration-200 group-hover/ticket:opacity-90 group-focus-visible/ticket:opacity-90 motion-reduce:transition-none"
+          className="h-full w-px opacity-55 transition-opacity duration-200 group-hover/ticket:opacity-90 motion-reduce:transition-none"
           style={{
             backgroundImage:
               "repeating-linear-gradient(to bottom, currentColor 0 3px, transparent 3px 7px)",
@@ -86,7 +85,7 @@ export function Ticket({
           aria-hidden
           className="label-mono mt-2 flex items-center gap-1.5 text-[8px] opacity-55"
         >
-          <span className="inline-block transition-transform duration-500 ease-out group-hover/ticket:rotate-180 group-focus-visible/ticket:rotate-180 motion-reduce:transition-none motion-reduce:group-hover/ticket:rotate-0">
+          <span className="inline-block transition-transform duration-500 ease-out group-hover/ticket:rotate-180 motion-reduce:transition-none motion-reduce:group-hover/ticket:rotate-0">
             ✦
           </span>
           <span className="truncate">Valid until you say it out loud</span>

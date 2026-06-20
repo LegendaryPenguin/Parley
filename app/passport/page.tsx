@@ -56,10 +56,10 @@ export default function Passport() {
           className="absolute -right-10 -bottom-12 w-44 h-44 rounded-full border-[6px] border-marigold/30 opacity-60 float-bob"
           aria-hidden
         />
-        <div className="relative flex items-start justify-between gap-3">
-          <div>
+        <div className="relative flex flex-col sm:flex-row items-start sm:justify-between gap-3">
+          <div className="min-w-0">
             <p className="label-mono text-marigold">Traveler&apos;s Passport</p>
-            <h1 className="font-display text-4xl sm:text-5xl leading-[1.05] mt-1">{profile.displayName}</h1>
+            <h1 className="font-display text-4xl sm:text-5xl leading-[1.05] mt-1 break-words">{profile.displayName}</h1>
           </div>
           <span
             className="shrink-0 grid place-items-center w-14 h-14 rounded-full border-2 border-paper/40 text-3xl bg-paper/5"
@@ -93,7 +93,7 @@ export default function Passport() {
         </div>
         <div className="relative border-2 border-ink rounded-sm bg-paper-deep/40 p-5 overprint">
           <div className="absolute inset-0 grain rounded-sm pointer-events-none" aria-hidden />
-          <div className="relative grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-6 justify-items-center">
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-x-4 sm:gap-y-6 justify-items-center">
             {SCENE_ORDER.map((id, i) => {
               const visited = profile.visitedSceneIds.includes(id);
               const colors = ["var(--marigold)", "var(--riso-pink)", "var(--pine)", "var(--grape)", "var(--riso-blue)", "var(--coral)"];
@@ -221,24 +221,38 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
       <button
         onClick={toggle}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-riso-blue"
+        className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-riso-blue"
       >
-        <span className="min-w-0">
+        <span className="w-full min-w-0">
           <span className="font-display text-lg">{scene?.place ?? record.sceneId}</span>
           <span className="label-mono text-ink/55 ml-2 block sm:inline mt-0.5 sm:mt-0">
             {date} · fluency {record.fluencyScore} · {record.wordsUsed.length} words
           </span>
         </span>
-        <span className="label-mono text-pine shrink-0 inline-flex items-center gap-1">
-          ✓ verified <span aria-hidden className="text-ink/50">{open ? "▴" : "▾"}</span>
+        {/* the verified seal — a little celebratory rubber stamp, not a checkbox */}
+        <span className="label-mono text-pine shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto">
+          <span className="inline-flex items-center gap-1 rounded-full border-2 border-pine bg-pine/10 px-2 py-0.5 -rotate-2">
+            <span aria-hidden className="text-[0.9em] leading-none">✓</span> verified
+          </span>
+          <span aria-hidden className="text-ink/50">{open ? "▴" : "▾"}</span>
         </span>
       </button>
       {open && (
         <div className="px-4 pb-4 space-y-2 border-t-2 border-ink/10 pt-3 bg-paper-deep/30">
-          <Field label="storage" value={record.transcriptStorageRoot} />
-          <Field label="record hash" value={record.recordHash} />
-          <Field label="model" value={record.attestation?.model ? `${record.attestation.model} · TEE-signed ✓` : "—"} />
-          <Field label="anchor" value={record.anchorTx ? `${record.anchorTx} (0G Chain)` : "pending"} />
+          <Field label="storage" value={record.transcriptStorageRoot} icon="📦" tint="var(--sky)" />
+          <Field label="record hash" value={record.recordHash} icon="#" tint="var(--grape)" />
+          <Field
+            label="model"
+            value={record.attestation?.model ? `${record.attestation.model} · TEE-signed ✓` : "—"}
+            icon="✶"
+            tint="var(--riso-pink)"
+          />
+          <Field
+            label="anchor"
+            value={record.anchorTx ? `${record.anchorTx} (0G Chain)` : "pending"}
+            icon="⚓"
+            tint="var(--pine)"
+          />
           <p className="font-read italic text-ink-soft text-sm pt-1">
             This record&apos;s fingerprint is anchored on-chain; it can&apos;t be altered after the fact.
           </p>
@@ -258,11 +272,19 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, icon, tint }: { label: string; value: string; icon: string; tint: string }) {
   return (
-    <p className="label-mono text-ink/75 break-all leading-relaxed">
-      <span className="inline-block text-ink/40 w-[5.5rem] align-top">{label}</span>
-      <span className="align-top">{value}</span>
+    <p className="label-mono text-ink/75 break-all leading-relaxed flex items-start gap-2">
+      {/* tiny riso chip so each field reads as a labelled artifact, not a legal line */}
+      <span
+        aria-hidden
+        className="shrink-0 grid place-items-center w-5 h-5 mt-px rounded-[5px] border-2 border-ink text-[0.7rem] text-ink"
+        style={{ background: tint }}
+      >
+        {icon}
+      </span>
+      <span className="inline-block text-ink/45 w-[5rem] sm:w-[5.5rem] shrink-0">{label}</span>
+      <span className="min-w-0">{value}</span>
     </p>
   );
 }

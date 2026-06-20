@@ -52,7 +52,7 @@ export default function Atlas() {
 
   return (
     <main className="min-h-screen px-5 py-6 max-w-5xl mx-auto">
-      <header className="flex items-end justify-between mb-6 gap-3">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 gap-3">
         <div>
           <p className="label-mono text-riso-pink flex items-center gap-2">
             <span aria-hidden>✦</span> The Atlas <span aria-hidden>✦</span>
@@ -61,7 +61,7 @@ export default function Atlas() {
             Where to, {profile.displayName}?
           </h1>
           {/* journey progress, read like stamps in a logbook */}
-          <div className="mt-2 flex items-center gap-2" aria-label={`${explored} of ${total} places explored`}>
+          <div className="mt-2 flex flex-wrap items-center gap-2" aria-label={`${explored} of ${total} places explored`}>
             {SCENE_ORDER.map((id, i) => (
               <span
                 key={id}
@@ -80,7 +80,9 @@ export default function Atlas() {
             </span>
           </div>
         </div>
-        <PassportTab profile={profile} wordCount={vocab.length} />
+        <div className="w-full sm:w-auto">
+          <PassportTab profile={profile} wordCount={vocab.length} />
+        </div>
       </header>
 
       {/* the board-game world map */}
@@ -147,7 +149,7 @@ export default function Atlas() {
       <div className="mt-4 flex items-center gap-4 flex-wrap label-mono text-[0.6rem] text-ink-soft">
         <LegendKey swatch="bg-marigold" label="stamped" />
         <LegendKey swatch="bg-riso-pink" label="you're here" pulse />
-        <LegendKey swatch="bg-fog" label="still fogged" />
+        <LegendKey swatch="bg-grape" label="still sealed" />
       </div>
 
       <div className="mt-3 flex items-center justify-between flex-wrap gap-3">
@@ -263,9 +265,21 @@ function PlacePin({
         ✓
       </motion.div>
     ) : (
-      // fogged-over, awaiting discovery
-      <div className="h-7 w-7 rounded-full bg-fog border-2 border-ink/40 grid place-items-center text-ink/40 text-xs">
-        ?
+      // a sealed "mystery" stop — not fogged-out and forgotten, but enticing:
+      // a grape/sunny halftone wax-seal that brightens on hover/focus, with a
+      // tiny lock glyph. Still non-navigable.
+      <div className="relative grid place-items-center">
+        {/* soft sunny glow that wakes up on hover/focus to invite curiosity */}
+        <span
+          aria-hidden
+          className="absolute h-7 w-7 rounded-full bg-sunny/30 blur-[2px] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+        />
+        <div
+          className="relative z-10 h-7 w-7 rounded-full border-2 border-ink grid place-items-center text-paper text-[0.6rem] shadow-[2px_2px_0_var(--ink)] halftone transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 group-focus-visible:-rotate-6 group-focus-visible:scale-110 motion-reduce:transition-none motion-reduce:group-hover:transform-none motion-reduce:group-focus-visible:transform-none"
+          style={{ background: "linear-gradient(135deg, var(--grape), var(--sunny))" }}
+        >
+          <span aria-hidden>🔒</span>
+        </div>
       </div>
     );
 
@@ -275,7 +289,7 @@ function PlacePin({
       <span
         aria-hidden
         className={`label-mono text-[0.5rem] leading-none mb-0.5 ${
-          state === "locked" ? "text-ink/30" : "text-ink/60"
+          state === "locked" ? "text-grape/60" : "text-ink/60"
         }`}
       >
         {index + 1}
@@ -285,12 +299,25 @@ function PlacePin({
         <span className="pill label-mono mt-1.5 bg-riso-pink text-paper text-[0.55rem] px-2 py-0.5 whitespace-nowrap">
           you’re here
         </span>
+      ) : state === "locked" ? (
+        // a teasing "?????" by default that peeks the real place name on
+        // hover/focus — keeps the mystery while rewarding a peek.
+        <span className="relative mt-1 grid label-mono whitespace-nowrap">
+          <span
+            aria-hidden
+            className="col-start-1 row-start-1 px-1 text-grape transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
+          >
+            ？？？
+          </span>
+          <span
+            aria-hidden
+            className="col-start-1 row-start-1 px-1 rounded-sm bg-paper/85 text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+          >
+            {place}
+          </span>
+        </span>
       ) : (
-        <span
-          className={`label-mono mt-1 px-1 rounded-sm ${
-            state === "locked" ? "text-ink/55" : "text-ink bg-paper/85"
-          }`}
-        >
+        <span className="label-mono mt-1 px-1 rounded-sm text-ink bg-paper/85">
           {place}
         </span>
       )}
@@ -300,9 +327,11 @@ function PlacePin({
   if (state === "locked") {
     return (
       <div
-        className="absolute"
+        className="absolute group rounded-sm cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grape"
         style={style}
-        aria-label={`${title} (locked)`}
+        tabIndex={0}
+        role="img"
+        aria-label={`${title} — locked. Keep walking the path to reach here.`}
         title="Locked — keep walking the path to reach here"
       >
         {inner}

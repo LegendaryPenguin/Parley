@@ -96,7 +96,7 @@ export function RewardSequence({
         role="dialog"
         aria-modal="true"
         aria-label="Reward earned"
-        className="wash-joy grain border-2 border-ink rounded-sm p-6 sm:p-7 max-w-md w-full text-center relative overflow-hidden shadow-[10px_10px_0_var(--ink)]"
+        className="wash-joy grain border-2 border-ink rounded-sm p-4 sm:p-6 w-[90vw] sm:max-w-md text-center relative overflow-hidden shadow-[10px_10px_0_var(--ink)]"
       >
         <div className="absolute inset-0 halftone text-marigold opacity-10 pointer-events-none" aria-hidden />
 
@@ -133,12 +133,12 @@ export function RewardSequence({
                     // A satisfying little spring-wobble when a kid pokes a word.
                     whileHover={reduce ? undefined : { scale: 1.03, rotate: -1 }}
                     whileTap={reduce ? undefined : { scale: 0.97, rotate: 1 }}
-                    className="flex items-center justify-between gap-3 border-2 border-ink rounded-sm px-3.5 py-2.5 bg-paper overprint shadow-[3px_3px_0_var(--ink)] cursor-default select-none"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 border-2 border-ink rounded-sm px-3.5 py-2.5 bg-paper overprint shadow-[3px_3px_0_var(--ink)] cursor-default select-none"
                   >
-                    <span className="target-lang text-riso-blue text-lg font-bold min-w-0 break-words">
+                    <span className="target-lang text-riso-blue text-base sm:text-lg font-bold w-full min-w-0 break-words">
                       {w.term}
                     </span>
-                    <span className="font-read text-ink text-right min-w-0 break-words">{w.meaning}</span>
+                    <span className="font-read text-ink w-full sm:w-auto text-left sm:text-right min-w-0 break-words">{w.meaning}</span>
                   </motion.div>
                 ))}
               </div>

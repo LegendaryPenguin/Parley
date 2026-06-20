@@ -15,9 +15,8 @@ export const Postcard = forwardRef<
   return (
     <div
       ref={ref}
-      tabIndex={0}
       aria-label={`Postcard from the ${place}: you said ${keyLine}${lineMeaning ? `, meaning ${lineMeaning}` : ""}`}
-      className="group relative w-full max-w-md mx-auto bg-paper text-ink border-2 border-ink overflow-hidden grain select-none outline-none transition-transform duration-300 ease-out [transform:translateZ(0)] hover:-translate-y-1 hover:-rotate-[0.6deg] focus-visible:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:rotate-0 focus-visible:ring-4 focus-visible:ring-riso-blue/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+      className="group relative w-full max-w-md mx-auto bg-paper text-ink border-2 border-ink overflow-hidden grain select-none transition-transform duration-300 ease-out [transform:translateZ(0)] hover:-translate-y-1 hover:-rotate-[0.6deg] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:rotate-0"
       style={{ aspectRatio: "3 / 2", boxShadow: "6px 6px 0 var(--ink)" }}
     >
       {/* deckle frame — a hand-printed border just inside the edge */}
@@ -42,7 +41,7 @@ export const Postcard = forwardRef<
 
       {/* postmark — a smudged, off-kilter cancellation stamp, top-right.
           it gives a little stamped wiggle when the card is touched/hovered */}
-      <div className="absolute top-3 right-3 z-30 -rotate-[7deg] origin-center transition-transform duration-200 ease-out group-hover:-rotate-[2deg] group-hover:scale-105 group-focus-visible:-rotate-[2deg] motion-reduce:transition-none motion-reduce:group-hover:rotate-[-7deg] motion-reduce:group-hover:scale-100">
+      <div className="absolute top-3 right-3 z-30 -rotate-[7deg] origin-center transition-transform duration-200 ease-out group-hover:-rotate-[2deg] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:rotate-[-7deg] motion-reduce:group-hover:scale-100">
         <div className="rounded-full border-2 border-ink/55 px-3 py-1.5 text-center bg-paper/70 backdrop-blur-[1px] overprint">
           <p className="label-mono text-ink/80 text-[10px] leading-none">{place}</p>
           <div className="my-1 h-px w-full bg-ink/30" aria-hidden />
@@ -72,7 +71,7 @@ export const Postcard = forwardRef<
               parley
             </p>
           </div>
-          <div className="-mb-1 -mr-1 shrink-0 origin-bottom-right transition-transform duration-200 ease-out group-hover:scale-110 group-focus-visible:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+          <div className="-mb-1 -mr-1 shrink-0 origin-bottom-right transition-transform duration-200 ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
             <Stamp label="seen" sublabel={place} color="var(--marigold)" size={72} animate={false} />
           </div>
         </div>
