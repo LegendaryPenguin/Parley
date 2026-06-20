@@ -7,7 +7,7 @@
 ## How 0G does real work (not a bolt-on)
 
 - **0G Compute — the engine.** Every NPC turn is a live inference call on 0G testnet (`qwen/qwen2.5-omni-7b`, TEE-attested). A separate *judge* call grades each exchange — goal met? corrections? which words were actually used? There are no scripted dialogue trees. Each response carries `x_0g_trace` (the compute provider address + request id) which becomes the record's attestation. **This is wired and verified live.**
-- **0G Storage — memory & ownership.** Player profile, phrasebook (with spaced-repetition state), NPC memory, and scene transcripts are written client-side encrypted, so the world remembers you and your phrasebook is portable. *(Runs in mock/local for the no-wallet demo; live SDK wiring is the remaining task.)*
+- **0G Storage — memory & ownership.** Scene transcripts (the substance the verifiable record points to) are uploaded to 0G Storage via the `@0gfoundation/0g-ts-sdk`, **true encrypt-to-self** (an XChaCha20-Poly1305 key derived from a one-time wallet signature — the network only sees ciphertext), returning a real content root. Hot state (profile / phrasebook / NPC memory) stays in fast local storage so saves don't cost gas on every edit. *(Live upload is opt-in via `NEXT_PUBLIC_OG_STORAGE_MODE=live` and requires MetaMask; mock/local is the default for the no-wallet demo.)*
 - **0G Chain — the verifiable record.** On scene completion, `keccak256(recordHash)` is anchored as a transaction on 0G Galileo testnet (chainId 16602), making the learning record tamper-evident. *(Opt-in; requires MetaMask.)*
 
 Strip 0G out and you have an empty map with nothing to say, nothing remembered, and nothing provable.
