@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { getScene, getPersona } from "@/lib/content/world";
 import { translate, HINTS } from "@/lib/content/assist";
 import { useGame } from "@/lib/store/useGame";
@@ -12,6 +12,7 @@ import { applyJudge } from "@/lib/engine";
 import { getNPCMemory } from "@/lib/og";
 import type { DialogueTurn, JudgeResult, NPCMemory, VocabItem } from "@/lib/types";
 import { SceneBackground, NPCPortrait } from "@/components/design/RisoIllustration";
+import { Panel } from "@/components/design/ui";
 import { Ticket } from "@/components/design/Ticket";
 import { SplitFlap } from "@/components/design/SplitFlap";
 import { MicInput } from "./MicInput";
@@ -23,6 +24,7 @@ export function SceneClient({ id }: { id: string }) {
   const completeScene = useGame((s) => s.completeScene);
   const rememberNPC = useGame((s) => s.rememberNPC);
 
+  const reduce = useReducedMotion();
   const scene = getScene(id);
   const persona = scene ? getPersona(scene.npcId) : undefined;
 
@@ -131,93 +133,123 @@ export function SceneClient({ id }: { id: string }) {
 
   if (!hydrated || !profile) {
     return (
-      <main className="min-h-screen grid place-items-center">
-        <SplitFlap text="FINDING A LOCAL" size="1.5rem" />
+      <main className="min-h-screen grid place-items-center wash-joy grain">
+        <div className="text-center space-y-3">
+          <SplitFlap text="FINDING A LOCAL" size="1.5rem" />
+          <p className="label-mono text-ink/60">someone always knows the way</p>
+        </div>
       </main>
     );
   }
   if (!scene || !persona) {
     return (
-      <main className="min-h-screen grid place-items-center text-center px-6">
-        <div>
-          <p className="font-display text-2xl">This place isn&apos;t on the map.</p>
-          <button onClick={() => router.push("/atlas")} className="label-mono underline mt-3">
-            Back to the Atlas
+      <main className="min-h-screen grid place-items-center text-center px-6 wash-joy grain">
+        <Panel className="px-7 py-6 overprint">
+          <p className="font-display text-2xl font-extrabold text-indigo">This place isn&apos;t on the map.</p>
+          <p className="font-read text-ink-soft mt-1">Wander back and pick another door.</p>
+          <button
+            onClick={() => router.push("/atlas")}
+            className="pill font-display font-extrabold uppercase tracking-wide text-paper bg-coral px-6 py-2.5 mt-4 hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
+            ← Back to the Atlas
           </button>
-        </div>
+        </Panel>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col max-w-2xl mx-auto">
-      {/* illustrated stage */}
+    <main className="min-h-screen flex flex-col max-w-2xl mx-auto bg-paper border-x-2 border-ink/15">
+      {/* illustrated stage — the place you've stepped into */}
       <motion.div
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative h-[40vh] min-h-[260px] border-b-2 border-ink"
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative h-[40vh] min-h-[260px] border-b-2 border-ink overflow-hidden"
       >
         <SceneBackground id={scene.art.background} alt={`${scene.title} — illustrated scene`} />
+        {/* gentle ink wash at the base so the portrait + label read cleanly */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"
+          style={{ background: "linear-gradient(to top, color-mix(in srgb, var(--ink) 38%, transparent), transparent)" }}
+        />
+
         <button
           onClick={() => router.push("/atlas")}
-          className="absolute top-3 left-3 label-mono bg-paper/85 border-2 border-ink px-2 py-1 rounded-sm hover:-translate-y-0.5 transition-transform"
+          className="absolute top-3 left-3 pill bg-paper text-ink px-3 py-1.5 font-display font-extrabold text-sm uppercase tracking-wide hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
         >
           ← Atlas
         </button>
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-          <NPCPortrait npcId={scene.npcId} name={persona.name} />
-          <p className="text-center label-mono bg-paper/85 px-2 rounded-sm mt-1">{persona.name}</p>
+
+        <span className="absolute top-3 right-3 pixel-badge text-[0.55rem] px-2.5 py-1.5" style={{ background: "var(--marigold)" }}>
+          STOP {String(scene.order).padStart(2, "0")}
+        </span>
+
+        {/* the character, framed and named like a postcard signature */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
+          <GreetablePortrait npcId={scene.npcId} name={persona.name} reduce={!!reduce} />
+          <span className="pill bg-paper text-ink px-3 py-0.5 mt-1.5 font-display font-extrabold text-sm">
+            {persona.name}
+          </span>
         </div>
       </motion.div>
 
-      {/* goal ticket */}
+      {/* what you're here to do */}
       <div className="px-4 -mt-1 pt-3">
         <Ticket number={String(scene.order).padStart(2, "0")} place={scene.place}>
           {scene.goalSummaryNative}
         </Ticket>
       </div>
 
-      {/* conversation */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      {/* the conversation itself */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         {turns.map((t, i) => (
           <Line key={i} turn={t} npcName={persona.name} />
         ))}
-        {busy && (
-          <p className="label-mono text-ink/50">
-            {turns.length === 0 ? `${persona.name} looks up…` : `${persona.name} is thinking…`}
-          </p>
-        )}
+
+        {busy && <Typing name={persona.name} opening={turns.length === 0} reduce={!!reduce} />}
+
         <AnimatePresence>
           {hintShown && (
             <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="border-2 border-dashed border-riso-pink rounded-sm px-3 py-2 bg-paper"
+              initial={{ opacity: 0, y: 8, rotate: -1 }}
+              animate={{ opacity: 1, y: 0, rotate: -1 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="relative mx-auto max-w-[88%] border-2 border-dashed border-riso-pink rounded-sm px-4 py-3 bg-bubble/50 overprint"
             >
-              <p className="label-mono text-riso-pink">Phrasebook hint</p>
-              <p className="font-read italic">{hintShown}</p>
+              <p className="label-mono text-riso-pink flex items-center gap-1.5">
+                <span aria-hidden>▤</span> from your phrasebook
+              </p>
+              <p className="font-read italic text-ink mt-0.5">{hintShown}</p>
             </motion.div>
           )}
         </AnimatePresence>
+
         {error && (
-          <button onClick={() => (turns.length === 0 ? openScene() : setError(null))} className="text-left">
-            <p className="font-read italic text-riso-pink">{error}</p>
+          <button
+            onClick={() => (turns.length === 0 ? openScene() : setError(null))}
+            className="block text-left mx-auto max-w-[88%] w-full border-2 border-coral rounded-sm px-4 py-3 bg-paper hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
+            <p className="label-mono text-coral">tap to try again</p>
+            <p className="font-read italic text-ink mt-0.5">{error}</p>
           </button>
         )}
       </div>
 
-      {/* input dock */}
-      <div className="sticky bottom-0 bg-paper border-t-2 border-ink px-4 py-3 space-y-2">
+      {/* input dock — where you say your piece */}
+      <div className="sticky bottom-0 bg-paper border-t-2 border-ink px-4 py-3 space-y-2.5">
         <MicInput onSend={handleSend} disabled={busy} placeholder={`Say it in ${langLabel(profile.targetLanguage)}…`} />
-        <div className="flex items-center justify-between">
-          <button onClick={showHint} disabled={busy} className="label-mono underline decoration-riso-pink decoration-2 underline-offset-4 disabled:opacity-40">
-            phrasebook ▤ {hintsUsed > 0 ? `(${hintsUsed} used)` : "hint"}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={showHint}
+            disabled={busy}
+            className="pill bg-paper text-ink px-3 py-1.5 font-display font-extrabold text-xs uppercase tracking-wide hover:bg-bubble disabled:opacity-40 disabled:shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
+            ▤ {hintsUsed > 0 ? `phrasebook · ${hintsUsed}` : "stuck? peek"}
           </button>
-          <span className="label-mono text-ink/60" aria-label={`fluency ${fluency}`}>
-            fluency {dots(fluency)}
-          </span>
+          <FluencyMeter fluency={fluency} reduce={!!reduce} />
         </div>
       </div>
 
@@ -234,53 +266,188 @@ export function SceneClient({ id }: { id: string }) {
   );
 }
 
+// The local, framed like a postcard signature — poke them for a friendly wave.
+function GreetablePortrait({ npcId, name, reduce }: { npcId: string; name: string; reduce: boolean }) {
+  const [waves, setWaves] = useState(0);
+  return (
+    <motion.button
+      type="button"
+      onClick={() => setWaves((n) => n + 1)}
+      aria-label={`Say hi to ${name}`}
+      initial={{ opacity: 0, y: 12, scale: 0.95 }}
+      animate={
+        reduce
+          ? { opacity: 1, y: 0, scale: 1 }
+          : { opacity: 1, y: 0, scale: 1, rotate: waves ? [0, -7, 6, -4, 0] : 0 }
+      }
+      transition={
+        waves
+          ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+          : { delay: 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }
+      }
+      whileTap={reduce ? undefined : { scale: 0.92 }}
+      className="relative drop-shadow-[3px_3px_0_var(--ink)] rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-paper"
+    >
+      <NPCPortrait npcId={npcId} name={name} />
+      <AnimatePresence>
+        {waves > 0 && (
+          <motion.span
+            key={waves}
+            aria-hidden
+            initial={{ opacity: 0, y: 4, scale: 0.6 }}
+            animate={{ opacity: 1, y: -6, scale: 1 }}
+            exit={{ opacity: 0, y: -14, scale: 0.8 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-none absolute -top-2 -right-1 text-xl select-none drop-shadow-[1px_1px_0_var(--ink)]"
+          >
+            👋
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
   const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
   if (turn.role === "npc") {
     const meaning = translate(turn.textTarget ?? "");
     return (
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="label-mono text-ink/50">{npcName}</p>
-        <p className="target-lang text-riso-blue text-lg leading-snug">{turn.textTarget}</p>
-        <button onClick={() => setOpen((o) => !o)} className="label-mono text-ink/50 hover:text-ink">
-          {open ? "▴ hide" : "▾ tap to translate"}
-        </button>
+      <motion.div
+        initial={{ opacity: 0, y: 8, x: -6 }}
+        animate={{ opacity: 1, y: 0, x: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col items-start"
+      >
+        <p className="label-mono text-riso-blue mb-1 ml-1">{npcName}</p>
+        {/* speech bubble from the local — printed, with a tail */}
+        <div className="relative max-w-[85%] bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] overprint">
+          <p className="target-lang text-indigo text-lg leading-snug">{turn.textTarget}</p>
+        </div>
+        {/* translate peel — like lifting the corner of a sticker */}
+        <motion.button
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          whileTap={reduce ? undefined : { rotate: -2, x: -2 }}
+          className="ml-1 mt-1.5 label-mono text-ink/55 hover:text-riso-blue transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+        >
+          {open ? "▴ hide meaning" : "▾ peel to translate"}
+        </motion.button>
         <AnimatePresence>
           {open && (
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="font-read italic text-ink-soft overflow-hidden"
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden ml-1 mt-1"
             >
-              {meaning ?? "(translation unavailable in this demo)"}
-            </motion.p>
+              <p className="font-read italic text-ink-soft border-l-2 border-dashed border-riso-blue pl-2">
+                {meaning ?? "(translation unavailable in this demo)"}
+              </p>
+            </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
     );
   }
-  // player
+  // player — your reply, leaning right
   return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-right">
-      <p className="label-mono text-ink/50">You</p>
-      <p className="font-read text-riso-pink text-lg">{turn.textTarget}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 8, x: 6 }}
+      animate={{ opacity: 1, y: 0, x: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="flex flex-col items-end"
+    >
+      <p className="label-mono text-riso-pink mb-1 mr-1">You</p>
+      <div className="max-w-[85%] bg-bubble border-2 border-ink rounded-2xl rounded-br-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)]">
+        <p className="font-read text-ink text-lg leading-snug">{turn.textTarget}</p>
+      </div>
       {turn.correction && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="font-read italic text-ink-soft text-sm"
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-[85%] mt-1.5 mr-0 bg-marigold/20 border border-marigold rounded-sm px-3 py-1.5"
         >
-          ✎ {turn.correction.note}
-        </motion.p>
+          <p className="label-mono text-[0.6rem] text-ink/70">a gentle fix</p>
+          <p className="font-read italic text-ink text-sm leading-snug">
+            <span aria-hidden className="text-marigold mr-1">✎</span>
+            {turn.correction.note}
+          </p>
+        </motion.div>
       )}
     </motion.div>
   );
 }
 
-function dots(fluency: number): string {
-  const filled = Math.round((fluency / 100) * 5);
-  return "●".repeat(filled) + "○".repeat(5 - filled);
+// "the local is gathering their words" — animated thinking row
+function Typing({ name, opening, reduce }: { name: string; opening: boolean; reduce: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-start"
+    >
+      <p className="label-mono text-riso-blue mb-1 ml-1">{name}</p>
+      <div className="bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] flex items-center gap-2">
+        <span className="label-mono text-ink/60">
+          {opening ? "looks up at you" : "gathering their words"}
+        </span>
+        <span className="flex gap-1" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="inline-block w-1.5 h-1.5 rounded-full bg-riso-blue"
+              animate={reduce ? { opacity: 0.7 } : { y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+              transition={
+                reduce
+                  ? undefined
+                  : { duration: 0.9, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }
+              }
+            />
+          ))}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+// Fluency as a printed progress bar of pips — fills toward the goal,
+// and each freshly-earned pip gives a little celebratory pop.
+function FluencyMeter({ fluency, reduce }: { fluency: number; reduce: boolean }) {
+  const total = 5;
+  const filled = Math.round((fluency / 100) * total);
+  const prevFilled = useRef(0);
+  useEffect(() => {
+    prevFilled.current = filled;
+  }, [filled]);
+  return (
+    <div className="flex items-center gap-2" aria-label={`fluency ${fluency} out of 100`} role="img">
+      <span className="label-mono text-ink/55 text-[0.6rem]">fluency</span>
+      <div className="flex gap-1">
+        {Array.from({ length: total }).map((_, i) => {
+          const on = i < filled;
+          const justEarned = on && i >= prevFilled.current && !reduce;
+          return (
+            <motion.span
+              key={i}
+              initial={false}
+              animate={{ scale: justEarned ? [1, 1.55, 1] : on ? 1 : 0.82 }}
+              transition={
+                justEarned
+                  ? { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
+                  : { type: "spring", stiffness: 320, damping: 18 }
+              }
+              className="w-2.5 h-2.5 rounded-full border-2 border-ink"
+              style={{ background: on ? "var(--pine)" : "var(--paper-deep)" }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function langLabel(code: string): string {
