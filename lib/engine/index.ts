@@ -20,8 +20,10 @@ const LANG_NAMES: Record<string, string> = {
   es: 'Spanish',
   fr: 'French',
   hi: 'Hindi',
-  ja: 'Japanese',
   de: 'German',
+  it: 'Italian',
+  ja: 'Japanese',
+  zh: 'Mandarin Chinese',
 };
 
 export function langName(code: string): string {

@@ -2,9 +2,13 @@ import type { LangScript, SceneScript } from "./types";
 import es from "./es";
 import fr from "./fr";
 import hi from "./hi";
+import de from "./de";
+import it from "./it";
+import ja from "./ja";
+import zh from "./zh";
 
 // Registry of playable languages' content scripts.
-const SCRIPTS: Record<string, LangScript> = { es, fr, hi };
+const SCRIPTS: Record<string, LangScript> = { es, fr, hi, de, it, ja, zh };
 
 export const SUPPORTED_LANGS = Object.keys(SCRIPTS);
 

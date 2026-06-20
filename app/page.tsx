@@ -37,6 +37,8 @@ const LANG_INK: Record<string, string> = {
   fr: "var(--riso-blue)",
   hi: "var(--grape)",
 };
+// fallback palette so any newly added language still gets its own ink
+const LANG_INK_CYCLE = ["var(--pine)", "var(--marigold)", "var(--riso-pink)", "var(--sky)", "var(--coral)"];
 
 export default function Arrival() {
   const router = useRouter();
@@ -193,9 +195,9 @@ export default function Arrival() {
               <div>
                 <label className="label-mono block mb-2">Where are you headed?</label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {LANGUAGES.map((l) => {
+                  {LANGUAGES.map((l, li) => {
                     const active = lang === l.code;
-                    const ink = LANG_INK[l.code] ?? "var(--riso-blue)";
+                    const ink = LANG_INK[l.code] ?? LANG_INK_CYCLE[li % LANG_INK_CYCLE.length];
                     return (
                       <motion.button
                         key={l.code}
@@ -224,7 +226,7 @@ export default function Arrival() {
                         <span className="min-w-0">
                           <span className="block font-display font-bold text-sm leading-tight">{l.label}</span>
                           <span className="target-lang block text-xs leading-tight text-ink-soft">
-                            {LANG_HELLO[l.code] ?? ""}
+                            {LANG_HELLO[l.code] ?? l.hello}
                           </span>
                         </span>
                         {/* Unmistakable selected marker that doesn't rely on color alone. */}

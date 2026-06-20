@@ -355,7 +355,7 @@ function Line({
   const [meaning, setMeaning] = useState<string | undefined>(undefined);
   const [translating, setTranslating] = useState(false);
   const reduce = useReducedMotion();
-  const isDeva = langMeta(lang).script === "deva";
+  const needsRoman = langMeta(lang).script !== "latin";
 
   if (turn.role === "npc") {
     const line = turn.textTarget ?? "";
@@ -399,7 +399,7 @@ function Line({
         {/* speech bubble from the local — printed, with a tail */}
         <div className="relative max-w-[90%] sm:max-w-[85%] bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] overprint">
           <p className="target-lang text-indigo text-base sm:text-lg leading-snug">{turn.textTarget}</p>
-          {isDeva && roman && reading && (
+          {needsRoman && roman && reading && (
             <p className="font-mono text-ink/60 text-xs mt-1">{reading}</p>
           )}
         </div>
@@ -413,7 +413,7 @@ function Line({
           >
             {open ? "▴ hide meaning" : "▾ peel to translate"}
           </motion.button>
-          {isDeva && reading && (
+          {needsRoman && reading && (
             <button
               onClick={() => setRoman((r) => !r)}
               aria-pressed={roman}

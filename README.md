@@ -4,7 +4,7 @@
 
 > Arrive at a place → read the goal → converse with the local (in your target language, live AI) → the AI judges it → earn the stamp, collect the words you used, unlock the next place.
 
-**Three playable languages: Spanish, French, and Hindi** (Devanagari + romanization).
+**Seven playable languages: Spanish, French, German, Italian, Hindi, Japanese, and Mandarin Chinese** — non-Latin scripts (Devanagari, kana/kanji, hanzi) include romanization and accept romanized input.
 
 ## How 0G does real work (not a bolt-on)
 
@@ -32,7 +32,7 @@ npm run dev        # http://localhost:3000
   - `chain.ts` — live anchor (ethers v6, MetaMask, 0G testnet).
   - `mock-*.ts` — canned inference + local persistence for the offline demo.
 - `lib/engine/` — tutor/game logic (prompts, SRS, difficulty). No 0G, no UI.
-- `lib/content/` — the seed world: 5 scenes + personas, with per-language content scripts (`scripts/{es,fr,hi}.ts`) for **Spanish, French, and Hindi** (Hindi in Devanagari with romanization). Live mode speaks/judges any of them natively; mock plays them all offline.
+- `lib/content/` — the seed world: 5 scenes + personas, with per-language content scripts (`scripts/{es,fr,de,it,hi,ja,zh}.ts`) for seven languages. Live mode speaks/judges any of them natively; mock plays them all offline.
 - `app/api/{chat,judge}` — server routes that hold the Router key.
 - `components/design/` — the risograph design system (SplitFlap, Stamp, Postcard, Icons…). See `/styleguide`.
 - `lib/audio/` — synthesized SFX + ambient (off by default, autoplay-safe).

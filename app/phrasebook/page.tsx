@@ -21,8 +21,10 @@ const SPEECH_LANG: Record<string, string> = {
   es: "es-ES",
   fr: "fr-FR",
   hi: "hi-IN",
-  ja: "ja-JP",
   de: "de-DE",
+  it: "it-IT",
+  ja: "ja-JP",
+  zh: "zh-CN",
 };
 function speechTag(lang?: LanguageCode): string {
   return (lang && SPEECH_LANG[lang]) || "es-ES";

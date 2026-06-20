@@ -140,12 +140,16 @@ export const LANGUAGES: {
   label: string;
   flag: string;
   bcp47: string;
-  script: 'latin' | 'deva';
+  script: 'latin' | 'deva' | 'kana' | 'hanzi';
   hello: string;
 }[] = [
   { code: 'es', label: 'Spanish', flag: 'ES', bcp47: 'es-ES', script: 'latin', hello: '¡Hola!' },
   { code: 'fr', label: 'French', flag: 'FR', bcp47: 'fr-FR', script: 'latin', hello: 'Bonjour !' },
   { code: 'hi', label: 'Hindi', flag: 'हि', bcp47: 'hi-IN', script: 'deva', hello: 'नमस्ते' },
+  { code: 'de', label: 'German', flag: 'DE', bcp47: 'de-DE', script: 'latin', hello: 'Hallo!' },
+  { code: 'it', label: 'Italian', flag: 'IT', bcp47: 'it-IT', script: 'latin', hello: 'Ciao!' },
+  { code: 'ja', label: 'Japanese', flag: '日', bcp47: 'ja-JP', script: 'kana', hello: 'こんにちは' },
+  { code: 'zh', label: 'Mandarin', flag: '中', bcp47: 'zh-CN', script: 'hanzi', hello: '你好' },
 ];
 
 export function langMeta(code: string) {
