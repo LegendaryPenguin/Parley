@@ -20,6 +20,7 @@ import type { LanguageCode, Mastery, VocabItem } from "@/lib/types";
 const SPEECH_LANG: Record<string, string> = {
   es: "es-ES",
   fr: "fr-FR",
+  hi: "hi-IN",
   ja: "ja-JP",
   de: "de-DE",
 };

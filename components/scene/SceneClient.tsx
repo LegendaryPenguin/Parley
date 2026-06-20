@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { getScene, getPersona } from "@/lib/content/world";
-import { translate, HINTS } from "@/lib/content/assist";
+import { translate, romanize, getHints } from "@/lib/content/assist";
+import { langMeta } from "@/lib/content/world";
 import { useGame } from "@/lib/store/useGame";
 import { useBoot } from "@/lib/store/boot";
 import { chatTurn, judgeExchange } from "@/lib/client/api";
@@ -141,7 +142,7 @@ export function SceneClient({ id }: { id: string }) {
   }
 
   function showHint() {
-    const hints = HINTS[id] ?? [];
+    const hints = getHints(profile?.targetLanguage ?? "es", id);
     const next = Math.min(hintsUsed, hints.length - 1);
     setHintShown(hints[next] ?? "Try a short, simple sentence.");
     setHintsUsed((n) => n + 1);
@@ -235,7 +236,7 @@ export function SceneClient({ id }: { id: string }) {
       {/* the conversation itself */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         {turns.map((t, i) => (
-          <Line key={i} turn={t} npcName={persona.name} />
+          <Line key={i} turn={t} npcName={persona.name} lang={profile.targetLanguage} sceneId={id} />
         ))}
 
         {busy && <Typing name={persona.name} opening={turns.length === 0} reduce={!!reduce} />}
@@ -270,7 +271,7 @@ export function SceneClient({ id }: { id: string }) {
 
       {/* input dock — where you say your piece */}
       <div className="sticky bottom-0 bg-paper border-t-2 border-ink px-2 sm:px-4 py-2 sm:py-3 space-y-2.5">
-        <MicInput onSend={handleSend} disabled={busy} placeholder={`Say it in ${langLabel(profile.targetLanguage)}…`} />
+        <MicInput onSend={handleSend} disabled={busy} lang={langMeta(profile.targetLanguage).bcp47} placeholder={`Say it in ${langLabel(profile.targetLanguage)}…`} />
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
           <button
             onClick={showHint}
@@ -338,11 +339,55 @@ function GreetablePortrait({ npcId, name, reduce }: { npcId: string; name: strin
   );
 }
 
-function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
+function Line({
+  turn,
+  npcName,
+  lang,
+  sceneId,
+}: {
+  turn: DialogueTurn;
+  npcName: string;
+  lang: string;
+  sceneId: string;
+}) {
   const [open, setOpen] = useState(false);
+  const [roman, setRoman] = useState(false);
+  const [meaning, setMeaning] = useState<string | undefined>(undefined);
+  const [translating, setTranslating] = useState(false);
   const reduce = useReducedMotion();
+  const isDeva = langMeta(lang).script === "deva";
+
   if (turn.role === "npc") {
-    const meaning = translate(turn.textTarget ?? "");
+    const line = turn.textTarget ?? "";
+    const canned = translate(lang, sceneId, line);
+    const reading = romanize(lang, sceneId, line);
+
+    async function reveal() {
+      const next = !open;
+      setOpen(next);
+      if (next && meaning === undefined) {
+        if (canned) {
+          setMeaning(canned);
+        } else {
+          // live arbitrary line → translate via 0G Compute
+          setTranslating(true);
+          try {
+            const res = await fetch("/api/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: line, lang }),
+            });
+            const data = await res.json();
+            setMeaning(res.ok ? data.translation : "(couldn't reach the translator)");
+          } catch {
+            setMeaning("(couldn't reach the translator)");
+          } finally {
+            setTranslating(false);
+          }
+        }
+      }
+    }
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 8, x: -6 }}
@@ -354,16 +399,30 @@ function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
         {/* speech bubble from the local — printed, with a tail */}
         <div className="relative max-w-[90%] sm:max-w-[85%] bg-sky/45 border-2 border-ink rounded-2xl rounded-bl-sm px-4 py-3 shadow-[3px_3px_0_var(--ink)] overprint">
           <p className="target-lang text-indigo text-base sm:text-lg leading-snug">{turn.textTarget}</p>
+          {isDeva && roman && reading && (
+            <p className="font-mono text-ink/60 text-xs mt-1">{reading}</p>
+          )}
         </div>
-        {/* translate peel — like lifting the corner of a sticker */}
-        <motion.button
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-          whileTap={reduce ? undefined : { rotate: -2, x: -2 }}
-          className="ml-1 mt-1.5 label-mono text-ink/55 hover:text-riso-blue transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
-        >
-          {open ? "▴ hide meaning" : "▾ peel to translate"}
-        </motion.button>
+        <div className="flex items-center gap-3">
+          {/* translate peel — like lifting the corner of a sticker */}
+          <motion.button
+            onClick={reveal}
+            aria-expanded={open}
+            whileTap={reduce ? undefined : { rotate: -2, x: -2 }}
+            className="ml-1 mt-1.5 label-mono text-ink/55 hover:text-riso-blue transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+          >
+            {open ? "▴ hide meaning" : "▾ peel to translate"}
+          </motion.button>
+          {isDeva && reading && (
+            <button
+              onClick={() => setRoman((r) => !r)}
+              aria-pressed={roman}
+              className="mt-1.5 label-mono text-ink/55 hover:text-riso-blue transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+            >
+              {roman ? "अ hide" : "Aa romanize"}
+            </button>
+          )}
+        </div>
         <AnimatePresence>
           {open && (
             <motion.div
@@ -374,7 +433,7 @@ function Line({ turn, npcName }: { turn: DialogueTurn; npcName: string }) {
               className="overflow-hidden ml-1 mt-1"
             >
               <p className="font-read italic text-ink-soft border-l-2 border-dashed border-riso-blue pl-2">
-                {meaning ?? "(translation unavailable in this demo)"}
+                {translating ? "translating…" : meaning ?? "(translation unavailable)"}
               </p>
             </motion.div>
           )}
@@ -493,5 +552,5 @@ function FluencyMeter({ fluency, reduce }: { fluency: number; reduce: boolean })
 }
 
 function langLabel(code: string): string {
-  return { es: "Spanish", fr: "French", ja: "Japanese", de: "German" }[code] ?? code;
+  return langMeta(code).label;
 }

@@ -133,11 +133,23 @@ export function getPersona(id: string): NPCPersona | undefined {
   return PERSONAS[id];
 }
 
-export const LANGUAGES: { code: string; label: string; flag: string }[] = [
-  { code: 'es', label: 'Spanish', flag: 'ES' },
-  { code: 'fr', label: 'French', flag: 'FR' },
-  { code: 'ja', label: 'Japanese', flag: 'JP' },
-  { code: 'de', label: 'German', flag: 'DE' },
+// Only fully-playable languages are offered. bcp47 drives speech recognition /
+// TTS; script flags Devanagari (Hindi) for the romanization toggle.
+export const LANGUAGES: {
+  code: string;
+  label: string;
+  flag: string;
+  bcp47: string;
+  script: 'latin' | 'deva';
+  hello: string;
+}[] = [
+  { code: 'es', label: 'Spanish', flag: 'ES', bcp47: 'es-ES', script: 'latin', hello: '¡Hola!' },
+  { code: 'fr', label: 'French', flag: 'FR', bcp47: 'fr-FR', script: 'latin', hello: 'Bonjour !' },
+  { code: 'hi', label: 'Hindi', flag: 'हि', bcp47: 'hi-IN', script: 'deva', hello: 'नमस्ते' },
 ];
+
+export function langMeta(code: string) {
+  return LANGUAGES.find((l) => l.code === code) ?? LANGUAGES[0];
+}
 
 export const AVATARS = ['wren', 'fox', 'moth', 'crane'];

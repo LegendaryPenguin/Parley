@@ -19,6 +19,7 @@ import type {
 const LANG_NAMES: Record<string, string> = {
   es: 'Spanish',
   fr: 'French',
+  hi: 'Hindi',
   ja: 'Japanese',
   de: 'German',
 };
@@ -43,6 +44,7 @@ export function buildNPCSystemPrompt(
 
   return [
     `[scene:${scene.id}]`,
+    `[lang:${profile.targetLanguage}]`,
     `You are ${persona.name}, a ${persona.role} at the ${scene.place.toLowerCase()}.`,
     persona.personaPrompt,
     `Speak ONLY in ${lang}, at CEFR ${profile.level} level — short, natural, speakable lines (1–2 sentences).`,

@@ -27,8 +27,7 @@ const AVATAR_NICK: Record<string, string> = {
 const LANG_HELLO: Record<string, string> = {
   es: "¡Hola!",
   fr: "Bonjour!",
-  ja: "こんにちは",
-  de: "Hallo!",
+  hi: "नमस्ते",
 };
 
 // Each destination gets its own riso ink so the flag tiles read as a printed
@@ -36,8 +35,7 @@ const LANG_HELLO: Record<string, string> = {
 const LANG_INK: Record<string, string> = {
   es: "var(--coral)",
   fr: "var(--riso-blue)",
-  ja: "var(--riso-pink)",
-  de: "var(--marigold)",
+  hi: "var(--grape)",
 };
 
 export default function Arrival() {
@@ -244,13 +242,9 @@ export default function Arrival() {
                     );
                   })}
                 </div>
-                {lang !== "es" ? (
-                  <p className="label-mono text-ink-soft mt-2">
-                    Spanish is fully voiced in this demo · {selectedLang?.label} is warming up
-                  </p>
-                ) : (
-                  <p className="label-mono text-pine mt-2">Fully voiced · ready when you are</p>
-                )}
+                <p className="label-mono text-pine mt-2">
+                  {selectedLang?.label} · fully playable, live on 0G
+                </p>
               </div>
 
               <div>
