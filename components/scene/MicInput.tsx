@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { MicIcon } from "@/components/design/Icons";
 
 // Push-to-talk + text. Speaking draws an ink waveform. STT via the browser
 // SpeechRecognition API (0G STT slots in here later, Brief §6). Always typeable.
@@ -186,7 +187,7 @@ export function MicInput({
           )}
           {/* The mic itself leans into the rhythm while you talk (still under reduced-motion). */}
           <motion.span
-            className="text-lg leading-none"
+            className="grid place-items-center leading-none"
             aria-hidden
             animate={listening && !reduceMotion ? { rotate: [-7, 7, -7] } : { rotate: 0 }}
             transition={
@@ -195,7 +196,7 @@ export function MicInput({
                 : { duration: 0.2 }
             }
           >
-            🎤
+            <MicIcon size={22} />
           </motion.span>
         </button>
       )}

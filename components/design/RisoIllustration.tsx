@@ -60,14 +60,18 @@ function Speckle({
   r?: number;
   opacity?: number;
 }) {
-  // deterministic pseudo-random so SSR + client match
+  // deterministic pseudo-random so SSR + client match. Round to 2 decimals:
+  // Math.sin is NOT bit-identical across JS engines (Node vs browser), so raw
+  // floats hydration-mismatch on the last digit. Rounding makes them stringify
+  // identically on both sides.
+  const round = (n: number) => Math.round(n * 100) / 100;
   const dots = Array.from({ length: count }, (_, i) => {
     const a = Math.sin((i + 1) * 12.9898 * seed) * 43758.5453;
     const b = Math.sin((i + 1) * 78.233 * seed) * 12543.137;
     return {
-      x: ((a - Math.floor(a)) * 400),
-      y: ((b - Math.floor(b)) * 280),
-      rr: r * (0.6 + (Math.abs(Math.sin(i * seed)) % 0.8)),
+      x: round((a - Math.floor(a)) * 400),
+      y: round((b - Math.floor(b)) * 280),
+      rr: round(r * (0.6 + (Math.abs(Math.sin(i * seed)) % 0.8))),
     };
   });
   return (

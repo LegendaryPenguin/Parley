@@ -12,6 +12,7 @@ import { SplitFlap } from "@/components/design/SplitFlap";
 import { Stamp } from "@/components/design/Stamp";
 import { Postcard } from "@/components/design/Postcard";
 import { PixelBadge, Confetti } from "@/components/design/Playful";
+import { StorageIcon, ShieldCheckIcon, CpuIcon, ChainIcon } from "@/components/design/Icons";
 import type { SceneRecord } from "@/lib/types";
 
 export default function Passport() {
@@ -231,27 +232,26 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
         </span>
         {/* the verified seal — a little celebratory rubber stamp, not a checkbox */}
         <span className="label-mono text-pine shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1 rounded-full border-2 border-pine bg-pine/10 px-2 py-0.5 -rotate-2">
-            <span aria-hidden className="text-[0.9em] leading-none">✓</span> verified
+          <span className="inline-flex items-center gap-1 rounded-full border-2 border-pine bg-pine/10 px-2 py-0.5 -rotate-2 text-pine">
+            <ShieldCheckIcon size={13} /> verified
           </span>
           <span aria-hidden className="text-ink/50">{open ? "▴" : "▾"}</span>
         </span>
       </button>
       {open && (
         <div className="px-4 pb-4 space-y-2 border-t-2 border-ink/10 pt-3 bg-paper-deep/30">
-          <Field label="storage" value={record.transcriptStorageRoot} icon="📦" tint="var(--sky)" />
-          <Field label="record hash" value={record.recordHash} icon="#" tint="var(--grape)" />
+          <Field label="storage" value={record.transcriptStorageRoot} icon={<StorageIcon size={15} />} />
+          <Field label="record hash" value={record.recordHash} icon={<ShieldCheckIcon size={15} />} />
           <Field
             label="model"
             value={record.attestation?.model ? `${record.attestation.model} · TEE-signed ✓` : "—"}
-            icon="✶"
-            tint="var(--riso-pink)"
+            icon={<CpuIcon size={15} />}
           />
           <Field
             label="anchor"
             value={record.anchorTx ? `${record.anchorTx} (0G Chain)` : "pending"}
-            icon="⚓"
-            tint="var(--pine)"
+            icon={<ChainIcon size={15} />}
+            tone="pine"
           />
           <p className="font-read italic text-ink-soft text-sm pt-1">
             This record&apos;s fingerprint is anchored on-chain; it can&apos;t be altered after the fact.
@@ -272,14 +272,13 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
   );
 }
 
-function Field({ label, value, icon, tint }: { label: string; value: string; icon: string; tint: string }) {
+function Field({ label, value, icon, tone = "ink" }: { label: string; value: string; icon: React.ReactNode; tone?: "ink" | "pine" }) {
   return (
     <p className="label-mono text-ink/75 break-all leading-relaxed flex items-start gap-2">
-      {/* tiny riso chip so each field reads as a labelled artifact, not a legal line */}
+      {/* small leading icon so each field reads as a labelled artifact, not a legal line */}
       <span
         aria-hidden
-        className="shrink-0 grid place-items-center w-5 h-5 mt-px rounded-[5px] border-2 border-ink text-[0.7rem] text-ink"
-        style={{ background: tint }}
+        className={`shrink-0 grid place-items-center w-5 h-5 mt-px ${tone === "pine" ? "text-pine" : "text-ink/60"}`}
       >
         {icon}
       </span>

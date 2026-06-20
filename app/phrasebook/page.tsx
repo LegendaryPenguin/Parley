@@ -12,6 +12,7 @@ import { SplitFlap } from "@/components/design/SplitFlap";
 import { GhostButton, PrimaryButton } from "@/components/design/ui";
 import { Confetti, FloatingShapes, PixelBadge } from "@/components/design/Playful";
 import { NPCPortrait } from "@/components/design/RisoIllustration";
+import { SpeakerIcon, StarIcon } from "@/components/design/Icons";
 import type { LanguageCode, Mastery, VocabItem } from "@/lib/types";
 
 // Speak each word in the voice of the language being learned, not always Spanish.
@@ -210,10 +211,11 @@ function CollectionMeter({ total, mastered, pct }: { total: number; mastered: nu
           {complete && (
             <motion.span
               aria-hidden
+              className="inline-flex"
               animate={reduce ? undefined : { scale: [1, 1.3, 1] }}
               transition={reduce ? undefined : { duration: 1.2, repeat: Infinity, repeatDelay: 0.6 }}
             >
-              ★
+              <StarIcon size={16} />
             </motion.span>
           )}
         </motion.span>
@@ -319,13 +321,13 @@ function VocabCard({ item, index, lang }: { item: VocabItem; index: number; lang
         <div className="flex items-start justify-between gap-1">
           <p className="target-lang text-riso-blue text-lg sm:text-xl leading-tight min-w-0 break-words overflow-hidden">{item.term}</p>
           <motion.span
-            className="text-base shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+            className="shrink-0 text-riso-blue opacity-70 group-hover:opacity-100 transition-opacity inline-flex"
             aria-hidden
             title="Hear it"
             animate={saying && !reduce ? { scale: [1, 1.25, 1] } : { scale: 1 }}
             transition={saying && !reduce ? { duration: 0.5, repeat: Infinity } : { duration: 0.2 }}
           >
-            🔊
+            <SpeakerIcon size={18} />
           </motion.span>
         </div>
         {item.reading && <p className="font-mono text-[0.7rem] text-ink/50 leading-tight break-words overflow-hidden">{item.reading}</p>}
@@ -466,7 +468,7 @@ function ReviewSession({
             onClick={() => speakTerm(card.term)}
             className="pill mt-4 inline-flex items-center gap-1.5 px-3 py-1 label-mono bg-paper hover:bg-sunny focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-riso-blue"
           >
-            <span aria-hidden>🔊</span> Hear it
+            <SpeakerIcon size={16} /> Hear it
           </button>
         )}
 

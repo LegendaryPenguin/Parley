@@ -9,6 +9,7 @@ import { useGame } from "@/lib/store/useGame";
 import { useBoot } from "@/lib/store/boot";
 import { PassportTab } from "@/components/design/PassportTab";
 import { SplitFlap } from "@/components/design/SplitFlap";
+import { LockIcon } from "@/components/design/Icons";
 
 export default function Atlas() {
   const router = useRouter();
@@ -402,7 +403,7 @@ function PlacePin({
           className="relative z-10 h-7 w-7 rounded-full border-2 border-ink grid place-items-center text-paper text-[0.6rem] shadow-[2px_2px_0_var(--ink)] halftone transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 group-focus-visible:-rotate-6 group-focus-visible:scale-110 motion-reduce:transition-none motion-reduce:group-hover:transform-none motion-reduce:group-focus-visible:transform-none"
           style={{ background: "linear-gradient(135deg, var(--grape), var(--sunny))" }}
         >
-          <span aria-hidden>🔒</span>
+          <LockIcon size={14} className="text-ink" />
         </div>
       </div>
     );
