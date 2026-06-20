@@ -8,6 +8,7 @@ import { Stamp } from "@/components/design/Stamp";
 import { Postcard } from "@/components/design/Postcard";
 import { PrimaryButton, GhostButton } from "@/components/design/ui";
 import { Confetti, PixelBadge } from "@/components/design/Playful";
+import { sfx } from "@/lib/audio/engine";
 import type { JudgeResult, VocabItem } from "@/lib/types";
 
 // A printed sunburst that flares behind the big beats — pure retro-arcade joy.
@@ -72,13 +73,21 @@ export function RewardSequence({
   const [phase, setPhase] = useState<"words" | "stamp" | "postcard">("words");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("stamp"), Math.max(1400, newWords.length * 550 + 600));
-    const t2 = setTimeout(() => setPhase("postcard"), Math.max(1400, newWords.length * 550 + 600) + 1500);
+    // SFX (no-op while muted): a chime as the panel opens, a blip per word
+    // collected, a thunk when the stamp lands. The kid-pleasing feedback layer.
+    sfx.success();
+    newWords.forEach((_, i) => setTimeout(() => sfx.collect(), 150 + i * 500));
+    const flip = Math.max(1400, newWords.length * 550 + 600);
+    const t1 = setTimeout(() => {
+      setPhase("stamp");
+      sfx.stamp();
+    }, flip);
+    const t2 = setTimeout(() => setPhase("postcard"), flip + 1500);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [newWords.length]);
+  }, [newWords]);
 
   // The whole stage flashes white and jolts when the stamp lands — a felt
   // "THWACK" you can't ignore. Driven off the phase so it fires exactly on impact.

@@ -156,6 +156,7 @@ export function SplitFlap({
   useEffect(() => {
     pending.current = chars.filter((c) => c !== " ").length;
     setArrived(false);
+    if (!reduced) void import("@/lib/audio/engine").then((m) => m.sfx.flap());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 

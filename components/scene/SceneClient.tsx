@@ -17,6 +17,7 @@ import { Ticket } from "@/components/design/Ticket";
 import { SplitFlap } from "@/components/design/SplitFlap";
 import { MicInput } from "./MicInput";
 import { RewardSequence } from "./RewardSequence";
+import { startAmbient, stopAmbient } from "@/lib/audio/engine";
 
 export function SceneClient({ id }: { id: string }) {
   const router = useRouter();
@@ -74,6 +75,13 @@ export function SceneClient({ id }: { id: string }) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns]);
+
+  // Per-scene ambient room tone (no-op while muted; muted by default).
+  useEffect(() => {
+    if (!scene) return;
+    startAmbient(scene.art.background);
+    return () => stopAmbient();
+  }, [scene]);
 
   async function handleSend(text: string) {
     if (!profile || !scene || busy) return;
