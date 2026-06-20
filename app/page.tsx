@@ -7,6 +7,7 @@ import { SplitFlap } from "@/components/design/SplitFlap";
 import { Stamp } from "@/components/design/Stamp";
 import { NPCPortrait } from "@/components/design/RisoIllustration";
 import { PrimaryButton, GhostButton, Panel } from "@/components/design/ui";
+import { FloatingShapes } from "@/components/design/Playful";
 import { LANGUAGES, AVATARS } from "@/lib/content/world";
 import { useGame } from "@/lib/store/useGame";
 import { setActiveWallet, useBoot } from "@/lib/store/boot";
@@ -67,9 +68,10 @@ export default function Arrival() {
   }
 
   return (
-    <main className="min-h-screen grid place-items-center px-6 py-10 relative overflow-hidden">
-      {/* faint halftone field */}
-      <div className="absolute inset-0 halftone text-riso-blue opacity-[0.06] pointer-events-none" />
+    <main className="min-h-screen grid place-items-center px-6 py-10 relative overflow-hidden wash-joy">
+      {/* faint halftone field + floating arcade shapes */}
+      <div className="absolute inset-0 halftone text-indigo opacity-[0.05] pointer-events-none" />
+      <FloatingShapes />
 
       <AnimatePresence mode="wait">
         {step === "cold" && (

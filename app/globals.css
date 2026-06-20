@@ -17,12 +17,24 @@
   --pine: #1f7a6b;
   --fog: #b9b0a0;
 
+  /* playful Zero Cup energy — bold indigo, bright purple, coral, pastels */
+  --indigo: #2e1a6b; /* deep headline indigo */
+  --grape: #7c5cff; /* bright accent purple */
+  --coral: #f24c5e; /* pill-button red/coral */
+  --mint: #a8e6cf; /* pastel mint wash */
+  --bubble: #f8c8dc; /* pastel pink wash */
+  --sky: #bcd8ff; /* pastel sky */
+  --sunny: #f5c518; /* badge yellow */
+
   /* fluid type scale */
   --t-display-xl: clamp(2.5rem, 6vw, 4.5rem);
   --t-display: clamp(1.75rem, 4vw, 2.5rem);
   --t-title: clamp(1.25rem, 2.5vw, 1.5rem);
   --t-body: 1.0625rem;
   --t-label: 0.8125rem;
+
+  /* the signature playful washes */
+  --wash-joy: linear-gradient(135deg, var(--mint) 0%, var(--sky) 45%, var(--bubble) 100%);
 }
 
 @theme inline {
@@ -35,10 +47,18 @@
   --color-marigold: var(--marigold);
   --color-pine: var(--pine);
   --color-fog: var(--fog);
+  --color-indigo: var(--indigo);
+  --color-grape: var(--grape);
+  --color-coral: var(--coral);
+  --color-mint: var(--mint);
+  --color-bubble: var(--bubble);
+  --color-sky: var(--sky);
+  --color-sunny: var(--sunny);
 
   --font-display: var(--font-bricolage);
   --font-read: var(--font-newsreader);
   --font-mono: var(--font-space-mono);
+  --font-pixel: var(--font-pixel);
 }
 
 html,
@@ -80,6 +100,46 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+/* retro pixel face for badges + game-y numbers */
+.font-pixel {
+  font-family: var(--font-pixel), var(--font-mono), monospace;
+}
+.pixel-badge {
+  font-family: var(--font-pixel), monospace;
+  font-size: 0.6rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* playful pill button with dark outline + offset drop shadow */
+.pill {
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  box-shadow: 0 5px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.pill:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--ink);
+}
+.pill:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+/* the joyful ambient wash for full-screen backgrounds */
+.wash-joy {
+  background: var(--wash-joy);
+}
+
+/* slow float for decorative shapes */
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-14px) rotate(calc(var(--rot, 0deg) + 6deg)); }
+}
+.float-bob { animation: float-bob 6s ease-in-out infinite; }
 
 /* ---- halftone fill (printed feel) ---- */
 .halftone {
