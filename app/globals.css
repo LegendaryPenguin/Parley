@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* ============================================================
+   PARLEY — risograph travelogue design system (Brief §4)
+   NOT cream + Didone + terracotta. Manila newsprint, riso blue
+   + fluoro pink overprint, marigold reward ink, pine success.
+   ============================================================ */
+
+:root {
+  --paper: #ece6da; /* manila newsprint — warmer/greyer than cream */
+  --paper-deep: #e2d9c7;
+  --ink: #211c18; /* warm press-black */
+  --ink-soft: #4a423a;
+  --riso-blue: #2a4bd7;
+  --riso-pink: #ff5c8a;
+  --marigold: #f2a60c;
+  --pine: #1f7a6b;
+  --fog: #b9b0a0;
+
+  /* fluid type scale */
+  --t-display-xl: clamp(2.5rem, 6vw, 4.5rem);
+  --t-display: clamp(1.75rem, 4vw, 2.5rem);
+  --t-title: clamp(1.25rem, 2.5vw, 1.5rem);
+  --t-body: 1.0625rem;
+  --t-label: 0.8125rem;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-riso-blue: var(--riso-blue);
+  --color-riso-pink: var(--riso-pink);
+  --color-marigold: var(--marigold);
+  --color-pine: var(--pine);
+  --color-fog: var(--fog);
+
+  --font-display: var(--font-bricolage);
+  --font-read: var(--font-newsreader);
+  --font-mono: var(--font-space-mono);
+}
+
+html,
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-read), Georgia, serif;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- paper grain over everything ---- */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+/* ---- type roles ---- */
+.font-display { font-family: var(--font-display), system-ui, sans-serif; }
+.font-read { font-family: var(--font-read), Georgia, serif; }
+.font-mono { font-family: var(--font-mono), ui-monospace, monospace; }
+
+/* target language reads like signage in the world */
+.target-lang {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.label-mono {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---- halftone fill (printed feel) ---- */
+.halftone {
+  background-image: radial-gradient(currentColor 1.1px, transparent 1.3px);
+  background-size: 6px 6px;
+}
+
+/* ---- overprint misregistration helper ---- */
+.overprint {
+  mix-blend-mode: multiply;
+}
+
+/* ---- focus ring (styled, not default-ugly) ---- */
+:focus-visible {
+  outline: 3px solid var(--riso-pink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::selection {
+  background: var(--marigold);
+  color: var(--ink);
+}
