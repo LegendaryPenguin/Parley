@@ -80,6 +80,10 @@ export function RewardSequence({
     };
   }, [newWords.length]);
 
+  // The whole stage flashes white and jolts when the stamp lands — a felt
+  // "THWACK" you can't ignore. Driven off the phase so it fires exactly on impact.
+  const slam = phase === "stamp" && !reduce;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -89,10 +93,36 @@ export function RewardSequence({
       {/* Full-screen confetti curtain — the euphoria runs the whole way through. */}
       <Confetti count={40} />
 
+      {/* Camera-flash bloom on impact: the entire screen pops bright for a frame
+          as the stamp slams home. Pure light, never blocks taps; off under reduced motion. */}
+      {!reduce && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none fixed inset-0"
+          style={{ background: "var(--paper)" }}
+          initial={{ opacity: 0 }}
+          animate={slam ? { opacity: [0, 0.55, 0] } : { opacity: 0 }}
+          transition={{ duration: 0.5, times: [0, 0.12, 1], ease: "easeOut" }}
+        />
+      )}
+
       <motion.div
         initial={reduce ? { opacity: 0 } : { scale: 0.9, y: 18, opacity: 0 }}
-        animate={reduce ? { opacity: 1 } : { scale: 1, y: 0, opacity: 1 }}
-        transition={reduce ? { duration: 0.25 } : { type: "spring", stiffness: 260, damping: 22 }}
+        animate={
+          reduce
+            ? { opacity: 1 }
+            : slam
+              ? // page shake: a sharp recoil + settle the instant the stamp hits.
+                { scale: 1, y: 0, opacity: 1, x: [0, -10, 11, -7, 4, 0], rotate: [0, -1.5, 1.2, -0.6, 0] }
+              : { scale: 1, y: 0, opacity: 1, x: 0, rotate: 0 }
+        }
+        transition={
+          reduce
+            ? { duration: 0.25 }
+            : slam
+              ? { duration: 0.5, ease: "easeOut" }
+              : { type: "spring", stiffness: 260, damping: 22 }
+        }
         role="dialog"
         aria-modal="true"
         aria-label="Reward earned"
@@ -149,15 +179,38 @@ export function RewardSequence({
             <motion.div
               key="stamp"
               initial={{ opacity: 0 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, x: [0, -7, 7, -4, 0] }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.45 }}
               className="relative py-8"
             >
               <Sunburst color="var(--marigold)" />
-              <Confetti count={18} />
+              {/* The biggest confetti dump in the app — this is the moment. */}
+              <Confetti count={48} />
               <p className="label-mono text-coral mb-4 relative">Passport stamped!</p>
               <div className="relative grid place-items-center">
+                {/* Ink-bloom shockwave: a coral ring rips outward from the strike point,
+                    so the stamp reads as truly slammed. Reduced-motion safe (skipped). */}
+                {!reduce && (
+                  <>
+                    <motion.span
+                      aria-hidden
+                      className="pointer-events-none absolute z-0 rounded-full overprint"
+                      style={{ width: 186, height: 186, background: "var(--coral)" }}
+                      initial={{ scale: 0.3, opacity: 0 }}
+                      animate={{ scale: [0.3, 2.1], opacity: [0.5, 0] }}
+                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.04 }}
+                    />
+                    <motion.span
+                      aria-hidden
+                      className="pointer-events-none absolute z-0 rounded-full"
+                      style={{ width: 186, height: 186, border: "3px solid var(--marigold)" }}
+                      initial={{ scale: 0.4, opacity: 0 }}
+                      animate={{ scale: [0.4, 2.6], opacity: [0.7, 0] }}
+                      transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+                    />
+                  </>
+                )}
                 <Stamp label={place} sublabel="VISITED" color="var(--coral)" size={186} />
               </div>
               <motion.p
@@ -183,22 +236,54 @@ export function RewardSequence({
           {phase === "postcard" && (
             <motion.div
               key="postcard"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 20 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              transition={reduce ? { duration: 0.25 } : { type: "spring", stiffness: 220, damping: 24 }}
+              initial={reduce ? { opacity: 0 } : { opacity: 0 }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1 }}
+              transition={reduce ? { duration: 0.25 } : { duration: 0.3 }}
               className="relative"
             >
-              <div className="flex items-center justify-center gap-2 mb-4">
+              {/* One more celebratory pop as the share artifact arrives. */}
+              <Confetti count={28} />
+              <div className="flex items-center justify-center gap-2 mb-4 relative">
                 <span className="label-mono text-grape">Postcard from</span>
                 <SplitFlap text={place} size="1.3rem" />
               </div>
-              <Postcard
-                sceneId={sceneId}
-                place={place}
-                keyLine={keyLine}
-                lineMeaning={keyLineMeaning}
-                fluency={judge.fluency}
-              />
+              {/* The postcard PRINTS IN: it slides up out of the press, overshoots,
+                  then presses flat — a fresh sheet hitting the tray. A sheen sweeps
+                  across the wet ink. Reduced motion: a calm fade, no travel. */}
+              <motion.div
+                className="relative"
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 90, scaleY: 0.78, rotate: -2 }}
+                animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scaleY: 1, rotate: 0 }}
+                transition={
+                  reduce ? { duration: 0.3 } : { type: "spring", stiffness: 200, damping: 17, mass: 0.9 }
+                }
+                style={{ transformOrigin: "bottom" }}
+              >
+                <Postcard
+                  sceneId={sceneId}
+                  place={place}
+                  keyLine={keyLine}
+                  lineMeaning={keyLineMeaning}
+                  fluency={judge.fluency}
+                />
+                {!reduce && (
+                  <motion.span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 z-30 overflow-hidden"
+                  >
+                    <motion.span
+                      className="absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)",
+                      }}
+                      initial={{ x: "0%" }}
+                      animate={{ x: "320%" }}
+                      transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
+                    />
+                  </motion.span>
+                )}
+              </motion.div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                 <PrimaryButton color="var(--coral)" onClick={() => router.push("/atlas")}>
                   Back to the Atlas

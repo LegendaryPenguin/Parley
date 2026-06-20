@@ -22,6 +22,24 @@ const AVATAR_NICK: Record<string, string> = {
   crane: "Crane",
 };
 
+// A native hello per destination so each chip greets you in its own tongue —
+// turns a dry dropdown into a tiny moment of arrival.
+const LANG_HELLO: Record<string, string> = {
+  es: "¡Hola!",
+  fr: "Bonjour!",
+  ja: "こんにちは",
+  de: "Hallo!",
+};
+
+// Each destination gets its own riso ink so the flag tiles read as a printed
+// row of stamps rather than identical grey boxes.
+const LANG_INK: Record<string, string> = {
+  es: "var(--coral)",
+  fr: "var(--riso-blue)",
+  ja: "var(--riso-pink)",
+  de: "var(--marigold)",
+};
+
 export default function Arrival() {
   const router = useRouter();
   const reduce = useReducedMotion();
@@ -89,11 +107,11 @@ export default function Arrival() {
           <motion.div
             key="cold"
             exit={{ opacity: 0, y: -20 }}
-            className="text-center relative z-10"
+            className="flex flex-col items-center text-center relative z-10"
           >
             {/* a little arrivals-board ticker over the title */}
             <motion.p
-              className="label-mono text-riso-blue mb-4 inline-flex items-center gap-2"
+              className="label-mono text-riso-blue mb-4 flex items-center justify-center gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -102,6 +120,8 @@ export default function Arrival() {
               Now boarding · all destinations
             </motion.p>
 
+            {/* Headline gets its own centered block so the split-flap sits dead-center
+                instead of being shoved off-axis by the label that precedes it. */}
             <SplitFlap key={headline} text={headline} size="clamp(2.5rem,9vw,5rem)" className="justify-center" />
 
             <p className="font-read italic text-ink-soft mt-6 text-lg max-w-sm mx-auto">
@@ -109,16 +129,27 @@ export default function Arrival() {
               with locals who remember you.
             </p>
 
-            <div className="mt-9 flex flex-col items-center gap-4">
-              <PrimaryButton color="var(--riso-pink)" onClick={() => setStep("setup")} className="text-lg">
-                Begin the journey
-              </PrimaryButton>
+            <div className="mt-9 flex flex-col items-center gap-3">
+              {/* A gentle perpetual bob on the primary CTA so the eye lands here and
+                  the moment feels like an open invitation — stilled when reduced. */}
+              <motion.div
+                animate={reduce ? undefined : { y: [0, -4, 0] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <PrimaryButton
+                  color="var(--riso-pink)"
+                  onClick={() => setStep("setup")}
+                  className="text-lg px-8 py-3.5"
+                >
+                  Begin the journey →
+                </PrimaryButton>
+              </motion.div>
               <span className="font-read text-ink-soft text-sm">
                 No tickets, no luggage — just your voice.
               </span>
             </div>
 
-            <p className="label-mono text-ink/50 mt-12">built on 0G · testnet demo</p>
+            <p className="label-mono text-ink/50 mt-10">built on 0G · testnet demo</p>
           </motion.div>
         )}
 
@@ -163,27 +194,52 @@ export default function Arrival() {
 
               <div>
                 <label className="label-mono block mb-2">Where are you headed?</label>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
                   {LANGUAGES.map((l) => {
                     const active = lang === l.code;
+                    const ink = LANG_INK[l.code] ?? "var(--riso-blue)";
                     return (
                       <motion.button
                         key={l.code}
                         type="button"
                         onClick={() => setLang(l.code)}
                         aria-pressed={active}
-                        whileTap={{ scale: 0.94 }}
+                        whileTap={{ scale: 0.96 }}
                         whileHover={{ y: -2 }}
                         // Tiny "clicks into place" pop the moment a destination is chosen.
-                        animate={active && !reduce ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+                        animate={active && !reduce ? { scale: [1, 1.06, 1] } : { scale: 1 }}
                         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                        className={`pill font-display font-bold text-sm px-4 py-2 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-grape/50 ${
-                          active ? "text-paper" : "text-ink"
+                        className={`group relative flex items-center gap-3 rounded-sm border-2 px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-grape/50 ${
+                          active ? "border-ink text-ink" : "border-ink/25 text-ink hover:border-ink"
                         }`}
-                        style={{ background: active ? "var(--riso-blue)" : "var(--paper)" }}
+                        style={{ background: active ? "var(--paper-deep)" : "var(--paper)" }}
                       >
-                        <span className="font-mono mr-1.5 opacity-80">{l.flag}</span>
-                        {l.label}
+                        {/* Small printed riso flag tile — overprinted ink swatch with the
+                            country code, so each destination reads like its own stamp. */}
+                        <span
+                          className="overprint grid h-8 w-10 shrink-0 place-items-center rounded-[3px] border-2 border-ink font-pixel text-[9px] leading-none text-paper"
+                          style={{ background: ink }}
+                          aria-hidden
+                        >
+                          {l.flag}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block font-display font-bold text-sm leading-tight">{l.label}</span>
+                          <span className="target-lang block text-xs leading-tight text-ink-soft">
+                            {LANG_HELLO[l.code] ?? ""}
+                          </span>
+                        </span>
+                        {/* Unmistakable selected marker that doesn't rely on color alone. */}
+                        {active && (
+                          <motion.span
+                            layoutId="lang-check"
+                            className="pixel-badge absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-ink text-[10px] font-bold text-paper"
+                            style={{ background: "var(--pine)" }}
+                            aria-hidden
+                          >
+                            ✓
+                          </motion.span>
+                        )}
                       </motion.button>
                     );
                   })}

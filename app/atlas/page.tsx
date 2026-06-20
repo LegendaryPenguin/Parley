@@ -85,22 +85,31 @@ export default function Atlas() {
         </div>
       </header>
 
-      {/* the board-game world map */}
+      {/* the board-game world map — taller on phones so pins + labels breathe,
+          relaxing to a wide travelogue spread on larger screens */}
       <div
-        className="relative w-full rounded-sm border-2 border-ink overflow-hidden halftone text-riso-blue shadow-[6px_6px_0_var(--ink)]"
-        style={{ aspectRatio: "16 / 10", background: "var(--paper-deep)" }}
+        className="relative w-full rounded-sm border-2 border-ink overflow-hidden halftone text-riso-blue shadow-[6px_6px_0_var(--ink)] aspect-[4/5] sm:aspect-[16/10]"
+        style={{ background: "var(--paper-deep)" }}
       >
         {/* printed cartographer's frame */}
         <div className="pointer-events-none absolute inset-2 border border-ink/20 rounded-sm" aria-hidden />
+
+        {/* the illustrated land: a soft coastline/landmass the route travels across,
+            tucked behind everything and kept clear of the pin coordinates */}
+        <Landmass />
+
+        {/* tiny travelogue motifs — placed in the empty quarters so they never
+            sit under a pin or its label */}
+        <MapMotifs />
 
         {/* compass rose, top-right corner */}
         <div className="pointer-events-none absolute top-3 right-3 opacity-50" aria-hidden>
           <CompassRose />
         </div>
 
-        {/* " here be words" cartouche, bottom-left */}
+        {/* "here be words" cartouche, bottom-left */}
         <div
-          className="pointer-events-none absolute bottom-3 left-3 label-mono text-[0.55rem] text-ink/45 max-w-[40%] leading-snug"
+          className="pointer-events-none absolute bottom-3 left-3 label-mono text-[0.5rem] sm:text-[0.55rem] text-ink/45 max-w-[44%] leading-snug"
           aria-hidden
         >
           ✺ here be words — speak to pass ✺
@@ -206,6 +215,115 @@ function CompassRose() {
   );
 }
 
+// A soft, printed coastline + landmass under the whole journey. It hugs the
+// route (which runs lower-left → upper-middle) without crowding any pin, and
+// reads as a riso "overprint" of land on sea. Stretches with the board so the
+// drawing stays put relative to the pins on every screen.
+function Landmass() {
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 w-full h-full"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      {/* the sea: a couple of overprinted swell lines in riso-blue */}
+      <path
+        d="M2 88 Q14 84 26 88 T50 88 T74 88 T98 88"
+        fill="none"
+        stroke="var(--riso-blue)"
+        strokeWidth="0.5"
+        opacity="0.25"
+      />
+      <path
+        d="M2 93 Q14 89 26 93 T50 93 T74 93 T98 93"
+        fill="none"
+        stroke="var(--riso-blue)"
+        strokeWidth="0.5"
+        opacity="0.2"
+      />
+      {/* the landmass: a friendly continent the path crosses, filled pine with a
+          marigold overprint edge so it prints like a two-pass riso plate */}
+      <path
+        d="M6 84 C10 64 26 58 30 46 C34 36 30 28 42 22 C56 15 66 22 72 18
+           C82 12 92 18 96 30 C100 44 90 54 84 60 C76 68 80 78 70 86
+           C58 94 40 92 28 92 C18 92 8 92 6 84 Z"
+        fill="var(--pine)"
+        opacity="0.1"
+      />
+      <path
+        d="M6 84 C10 64 26 58 30 46 C34 36 30 28 42 22 C56 15 66 22 72 18
+           C82 12 92 18 96 30 C100 44 90 54 84 60 C76 68 80 78 70 86
+           C58 94 40 92 28 92 C18 92 8 92 6 84 Z"
+        fill="none"
+        stroke="var(--pine)"
+        strokeWidth="0.6"
+        strokeDasharray="0.8 0.9"
+        opacity="0.4"
+      />
+    </svg>
+  );
+}
+
+// Decorative riso travelogue motifs. Each is parked in a corner/empty quarter
+// far from the five pin coordinates (which sit roughly along the diagonal
+// 18,70 → 38,52 → 60,60 → 78,38 → 52,24), so nothing overlaps a marker or label.
+function MapMotifs() {
+  const reduceMotion = useReducedMotion();
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden>
+      {/* sun, upper-left empty corner — the one small looping signature beat */}
+      <motion.svg
+        className="absolute"
+        style={{ left: "11%", top: "10%", width: 30, height: 30 }}
+        viewBox="0 0 30 30"
+        animate={reduceMotion ? undefined : { rotate: 360 }}
+        transition={reduceMotion ? undefined : { duration: 40, repeat: Infinity, ease: "linear" }}
+      >
+        <circle cx="15" cy="15" r="5" fill="var(--sunny)" stroke="var(--ink)" strokeWidth="1" />
+        {Array.from({ length: 8 }).map((_, i) => {
+          const a = (i / 8) * Math.PI * 2;
+          const x1 = 15 + Math.cos(a) * 7.5;
+          const y1 = 15 + Math.sin(a) * 7.5;
+          const x2 = 15 + Math.cos(a) * 11;
+          const y2 = 15 + Math.sin(a) * 11;
+          return (
+            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--marigold)" strokeWidth="1.3" strokeLinecap="round" />
+          );
+        })}
+      </motion.svg>
+
+      {/* mountains, upper-right beneath the compass */}
+      <svg className="absolute" style={{ right: "8%", top: "30%", width: 52, height: 26 }} viewBox="0 0 52 26">
+        <path d="M2 24 L14 6 L24 18 L34 4 L50 24 Z" fill="var(--grape)" opacity="0.35" stroke="var(--ink)" strokeWidth="1" strokeLinejoin="round" />
+        <path d="M11 11 L14 6 L17 11 Z" fill="var(--paper)" opacity="0.8" />
+        <path d="M31 9 L34 4 L37 9 Z" fill="var(--paper)" opacity="0.8" />
+      </svg>
+
+      {/* a little boat bobbing in the open water, lower-right */}
+      <motion.svg
+        className="absolute"
+        style={{ right: "9%", bottom: "10%", width: 40, height: 30 }}
+        viewBox="0 0 40 30"
+        animate={reduceMotion ? undefined : { y: [0, -2.5, 0], rotate: [-2, 2, -2] }}
+        transition={reduceMotion ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        {/* mast + sail */}
+        <line x1="20" y1="4" x2="20" y2="20" stroke="var(--ink)" strokeWidth="1.2" />
+        <path d="M20 5 L31 18 L20 18 Z" fill="var(--coral)" stroke="var(--ink)" strokeWidth="1" strokeLinejoin="round" />
+        <path d="M20 5 L11 17 L20 17 Z" fill="var(--paper)" opacity="0.85" stroke="var(--ink)" strokeWidth="0.8" />
+        {/* hull */}
+        <path d="M7 20 L33 20 L29 27 L11 27 Z" fill="var(--riso-blue)" stroke="var(--ink)" strokeWidth="1" strokeLinejoin="round" />
+      </motion.svg>
+
+      {/* a wheeling gull or two near the boat */}
+      <svg className="absolute" style={{ right: "26%", bottom: "26%", width: 26, height: 12 }} viewBox="0 0 26 12">
+        <path d="M2 8 Q6 2 10 8 Q14 2 18 8" fill="none" stroke="var(--ink)" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
+      </svg>
+    </div>
+  );
+}
+
 function PlacePin({
   id,
   index,
@@ -223,6 +341,12 @@ function PlacePin({
 }) {
   const reduceMotion = useReducedMotion();
   const style = { left: `${pos.x}%`, top: `${pos.y * 0.62 * (100 / 62)}%` } as const;
+
+  // Keep labels inside the board: anchor the column toward whichever edge the
+  // pin hugs, so wide place names never clip the left/right frame on a narrow
+  // phone. Pins on the far left grow rightward, far right grow leftward.
+  const labelAlign =
+    pos.x <= 24 ? "items-start text-left" : pos.x >= 74 ? "items-end text-right" : "items-center text-center";
 
   const marker =
     state === "current" ? (
@@ -284,7 +408,7 @@ function PlacePin({
     );
 
   const inner = (
-    <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
+    <div className={`flex flex-col -translate-x-1/2 -translate-y-1/2 ${labelAlign}`}>
       {/* tiny stop number, like a board-game space */}
       <span
         aria-hidden
@@ -295,14 +419,16 @@ function PlacePin({
         {index + 1}
       </span>
       {marker}
+      {/* labels live BELOW the marker on a paper chip so they never collide with
+          the pin or the route line; small type keeps them tidy on phones */}
       {state === "current" ? (
-        <span className="pill label-mono mt-1.5 bg-riso-pink text-paper text-[0.55rem] px-2 py-0.5 whitespace-nowrap">
+        <span className="pill label-mono mt-1.5 bg-riso-pink text-paper text-[0.5rem] sm:text-[0.55rem] px-1.5 py-0.5 whitespace-nowrap shadow-[1px_1px_0_var(--ink)]">
           you’re here
         </span>
       ) : state === "locked" ? (
         // a teasing "?????" by default that peeks the real place name on
         // hover/focus — keeps the mystery while rewarding a peek.
-        <span className="relative mt-1 grid label-mono whitespace-nowrap">
+        <span className="relative mt-1 grid label-mono text-[0.5rem] sm:text-[0.55rem] whitespace-nowrap">
           <span
             aria-hidden
             className="col-start-1 row-start-1 px-1 text-grape transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
@@ -311,13 +437,13 @@ function PlacePin({
           </span>
           <span
             aria-hidden
-            className="col-start-1 row-start-1 px-1 rounded-sm bg-paper/85 text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+            className="col-start-1 row-start-1 px-1 rounded-sm bg-paper/90 text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
           >
             {place}
           </span>
         </span>
       ) : (
-        <span className="label-mono mt-1 px-1 rounded-sm text-ink bg-paper/85">
+        <span className="label-mono text-[0.5rem] sm:text-[0.55rem] mt-1 px-1 rounded-sm text-ink bg-paper/90 whitespace-nowrap shadow-[1px_1px_0_var(--ink)]">
           {place}
         </span>
       )}

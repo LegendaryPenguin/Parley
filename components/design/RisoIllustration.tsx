@@ -79,6 +79,18 @@ function Speckle({
   );
 }
 
+// Distant rolling hills — gives outdoor scenes a soft background layer.
+function Hills({ y, color, opacity = 0.4 }: { y: number; color: string; opacity?: number }) {
+  return (
+    <g aria-hidden>
+      <Overprint dx={-2} dy={1.5} opacity={opacity * 0.7}>
+        <path d={`M-20 ${y + 10} q90 -34 200 -6 t220 0 V280 H-20 Z`} fill={PINK} />
+      </Overprint>
+      <path d={`M-20 ${y + 10} q90 -34 200 -6 t220 0 V280 H-20 Z`} fill={color} opacity={opacity} />
+    </g>
+  );
+}
+
 // A warm printed sun that lives in most outdoor scenes.
 function Sun({ x, y, reduce }: { x: number; y: number; reduce: boolean }) {
   return (
@@ -115,12 +127,16 @@ function MarketScene() {
   const reduce = useReducedMotion();
   return (
     <svg viewBox="0 0 400 280" className="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden focusable="false">
-      {/* warm sky wash */}
-      <rect width="400" height="280" fill={SKY} opacity={0.5} />
+      {/* warm sky wash → sunbaked plaza */}
+      <rect width="400" height="280" fill={SUNNY} opacity={0.32} />
+      <rect width="400" height="170" fill={SKY} opacity={0.45} />
       <rect y="150" width="400" height="130" fill={BUBBLE} opacity={0.45} />
-      <Sun x={350} y={48} reduce={!!reduce} />
+      <Sun x={350} y={46} reduce={!!reduce} />
 
-      {/* far rooftops, picture-book town */}
+      {/* BACKGROUND: soft hill behind the town, far depth layer */}
+      <Hills y={132} color={MINT} opacity={0.35} />
+
+      {/* MIDGROUND: far rooftops, picture-book town (windows + chimneys) */}
       {[
         { x: 0, w: 70, h: 60, c: PINK },
         { x: 70, w: 55, h: 80, c: GRAPE },
@@ -129,9 +145,13 @@ function MarketScene() {
         { x: 305, w: 55, h: 50, c: PINE },
         { x: 360, w: 50, h: 75, c: MARIGOLD },
       ].map((b, i) => (
-        <g key={i} opacity={0.7}>
+        <g key={i} opacity={0.78}>
           <rect x={b.x} y={150 - b.h} width={b.w} height={b.h} fill={b.c} stroke={INK} strokeWidth={1.5} />
           <path d={`M${b.x - 4} ${150 - b.h} L${b.x + b.w / 2} ${150 - b.h - 16} L${b.x + b.w + 4} ${150 - b.h} Z`} fill={INK} opacity={0.85} />
+          {/* little lit window */}
+          <rect x={b.x + b.w / 2 - 6} y={150 - b.h + 12} width={12} height={14} rx={1} fill={SUNNY} opacity={0.9} stroke={INK} strokeWidth={1} />
+          {/* chimney */}
+          <rect x={b.x + b.w - 14} y={150 - b.h - 10} width={6} height={12} fill={INK} opacity={0.6} />
         </g>
       ))}
 
@@ -176,7 +196,21 @@ function MarketScene() {
         strokeWidth={1.5}
       />
 
-      {/* crate of oranges */}
+      {/* strings of peppers + garlic hanging from the awning rail */}
+      {[64, 96, 300, 332].map((x, i) => (
+        <g key={x} aria-hidden>
+          <line x1={x} y1={122} x2={x} y2={134} stroke={INK} strokeWidth={1.2} />
+          {i % 2 === 0
+            ? [0, 1, 2, 3].map((k) => (
+                <path key={k} d={`M${x - 2} ${134 + k * 9} q-5 5 0 9 q5 -4 0 -9 Z`} fill={CORAL} stroke={INK} strokeWidth={1} />
+              ))
+            : [0, 1, 2].map((k) => (
+                <circle key={k} cx={x} cy={138 + k * 8} r={4.5} fill={PAPER} stroke={INK} strokeWidth={1} />
+              ))}
+        </g>
+      ))}
+
+      {/* FOREGROUND focal subject: crate of oranges */}
       <rect x="62" y="180" width="116" height="62" rx="4" fill={MARIGOLD} stroke={INK} strokeWidth={2.5} />
       <rect x="62" y="180" width="116" height="14" fill={INK} opacity={0.12} />
       {[0, 1, 2, 3, 4].map((i) =>
@@ -234,7 +268,24 @@ function BorderScene() {
     <svg viewBox="0 0 400 280" className="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden focusable="false">
       <rect width="400" height="280" fill={SKY} opacity={0.4} />
       <rect y="170" width="400" height="110" fill={MINT} opacity={0.5} />
-      <Sun x={56} y={50} reduce={!!reduce} />
+      <Sun x={56} y={48} reduce={!!reduce} />
+
+      {/* BACKGROUND: jagged frontier mountains, far depth */}
+      <g aria-hidden>
+        <Overprint dx={-2} dy={1.5} opacity={0.35}>
+          <path d="M-10 168 L70 96 L130 150 L210 84 L300 152 L370 104 L410 168 Z" fill={PINK} />
+        </Overprint>
+        <path d="M-10 168 L70 96 L130 150 L210 84 L300 152 L370 104 L410 168 Z" fill={GRAPE} opacity={0.3} stroke={INK} strokeWidth={1.5} />
+        {/* snow caps */}
+        <path d="M70 96 L84 108 L70 112 L56 108 Z" fill={PAPER} opacity={0.7} />
+        <path d="M210 84 L226 98 L210 102 L194 98 Z" fill={PAPER} opacity={0.7} />
+      </g>
+
+      {/* MIDGROUND: winding road approaching the checkpoint */}
+      <path d="M150 280 L182 176 L218 176 L250 280 Z" fill={INK} opacity={0.12} />
+      {[200, 224, 252].map((y, i) => (
+        <rect key={y} x={196 - i * 2} y={y} width={8 + i * 2} height={7} rx={1} fill={SUNNY} opacity={0.6} />
+      ))}
 
       {/* distant fence line into the hills */}
       {Array.from({ length: 14 }).map((_, i) => (
@@ -249,6 +300,9 @@ function BorderScene() {
       <rect x="118" y="62" width="164" height="158" rx="6" fill={PAPER} stroke={INK} strokeWidth={2.5} />
       {/* roof */}
       <path d="M108 64 L292 64 L270 40 L130 40 Z" fill={CORAL} stroke={INK} strokeWidth={2.5} />
+      {/* flagpole + pennant atop the booth */}
+      <line x1="200" y1="40" x2="200" y2="14" stroke={INK} strokeWidth={2} />
+      <path d="M200 16 L224 22 L200 28 Z" fill={MARIGOLD} stroke={INK} strokeWidth={1.5} />
       {/* sign band */}
       <rect x="118" y="76" width="164" height="34" fill={BLUE} stroke={INK} strokeWidth={2} />
       <text x="200" y="98" textAnchor="middle" fontFamily="var(--font-space-mono)" fontSize="13" fill={PAPER} letterSpacing="4">
@@ -285,7 +339,7 @@ function CafeScene() {
   const reduce = useReducedMotion();
   return (
     <svg viewBox="0 0 400 280" className="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden focusable="false">
-      {/* cozy interior wash */}
+      {/* cozy interior wash + warm lamplight pooling on the floor */}
       <rect width="400" height="280" fill={BUBBLE} opacity={0.5} />
       <rect y="150" width="400" height="130" fill={MARIGOLD} opacity={0.18} />
 
@@ -293,6 +347,25 @@ function CafeScene() {
       {[0, 50, 100, 150, 200, 250, 300, 350].map((x) => (
         <rect key={x} x={x} y={0} width={25} height={150} fill={PINK} opacity={0.12} />
       ))}
+
+      {/* BACKGROUND: window onto a rainy-bright street (depth past the room) */}
+      <g aria-hidden>
+        <rect x="140" y="30" width="120" height="92" rx="4" fill={SKY} opacity={0.55} stroke={INK} strokeWidth={2.5} />
+        <line x1="200" y1="30" x2="200" y2="122" stroke={INK} strokeWidth={2} />
+        <line x1="140" y1="76" x2="260" y2="76" stroke={INK} strokeWidth={2} />
+        {/* silhouetted passers-by + a tree across the street */}
+        <circle cx="166" cy="96" r="6" fill={GRAPE} opacity={0.5} />
+        <rect x="161" y="100" width="10" height="18" rx="3" fill={GRAPE} opacity={0.5} />
+        <circle cx="232" cy="60" r="14" fill={PINE} opacity={0.45} />
+        <rect x="229" y="60" width="6" height="20" fill={INK} opacity={0.4} />
+      </g>
+
+      {/* hanging OPEN sign by the window */}
+      <g aria-hidden>
+        <line x1="120" y1="30" x2="120" y2="44" stroke={INK} strokeWidth={1.5} />
+        <rect x="100" y="44" width="40" height="18" rx="3" fill={CORAL} stroke={INK} strokeWidth={2} />
+        <text x="120" y="57" textAnchor="middle" fontFamily="var(--font-space-mono)" fontSize="9" fill={PAPER} letterSpacing="1">OPEN</text>
+      </g>
 
       {/* hanging pendant lamps (static — curling steam is the bold beat) */}
       {[110, 200, 290].map((x) => (
@@ -352,6 +425,17 @@ function CafeScene() {
         </g>
       ))}
 
+      {/* glass cake stand on the counter — a sweet foreground treat */}
+      <g aria-hidden>
+        <ellipse cx="200" cy="200" rx="34" ry="6" fill={PAPER} stroke={INK} strokeWidth={2} />
+        <line x1="200" y1="200" x2="200" y2="186" stroke={INK} strokeWidth={2} />
+        <ellipse cx="200" cy="186" rx="30" ry="5" fill={PAPER} stroke={INK} strokeWidth={2} />
+        {/* a slice of pink layer cake */}
+        <path d="M184 186 L216 186 L210 170 L190 170 Z" fill={PINK} stroke={INK} strokeWidth={1.5} />
+        <line x1="187" y1="178" x2="213" y2="178" stroke={CORAL} strokeWidth={2} />
+        <circle cx="200" cy="167" r="3" fill={CORAL} stroke={INK} strokeWidth={1} />
+      </g>
+
       {/* tiny potted plant on the counter */}
       <rect x="320" y="200" width="22" height="22" rx="3" fill={MARIGOLD} stroke={INK} strokeWidth={2} />
       {[326, 331, 336].map((x, i) => (
@@ -372,6 +456,23 @@ function HarborScene() {
       <rect width="400" height="180" fill={SKY} opacity={0.6} />
       <rect y="170" width="400" height="110" fill={BLUE} opacity={0.32} />
       <Sun x={64} y={52} reduce={!!reduce} />
+
+      {/* BACKGROUND: a far headland with tiny houses across the bay */}
+      <g aria-hidden opacity={0.55}>
+        <Overprint dx={-2} dy={1.5} opacity={0.4}>
+          <path d="M300 172 q40 -30 110 -18 V172 Z" fill={PINK} />
+        </Overprint>
+        <path d="M300 172 q40 -30 110 -18 V172 Z" fill={PINE} opacity={0.5} stroke={INK} strokeWidth={1.2} />
+        {[326, 348, 370].map((x, i) => (
+          <g key={x}>
+            <rect x={x} y={150 + i} width={8} height={9} fill={PAPER} stroke={INK} strokeWidth={1} />
+            <path d={`M${x - 1} ${150 + i} L${x + 4} ${146 + i} L${x + 9} ${150 + i} Z`} fill={CORAL} />
+          </g>
+        ))}
+        {/* a faraway boat */}
+        <path d="M250 162 L264 162 L260 170 L254 170 Z" fill={GRAPE} opacity={0.6} />
+        <line x1="257" y1="162" x2="257" y2="150" stroke={INK} strokeWidth={1} />
+      </g>
 
       {/* drifting clouds (static — sailboat + waves carry this scene) */}
       {[
@@ -439,6 +540,26 @@ function HarborScene() {
         strokeLinecap="round"
       />
 
+      {/* FOREGROUND: a weathered wooden dock + mooring post with rope coil */}
+      <g aria-hidden>
+        <rect x="0" y="244" width="400" height="36" fill={MARIGOLD} opacity={0.8} stroke={INK} strokeWidth={2.5} />
+        {[20, 70, 120, 170, 220, 270, 320, 370].map((x) => (
+          <line key={x} x1={x} y1={244} x2={x} y2={280} stroke={INK} strokeWidth={1.2} opacity={0.4} />
+        ))}
+        {/* striped mooring bollard */}
+        <rect x="40" y="216" width="22" height="30" rx={4} fill={CORAL} stroke={INK} strokeWidth={2.5} />
+        <rect x="40" y="224" width="22" height="6" fill={PAPER} opacity={0.7} />
+        <ellipse cx="51" cy="216" rx="13" ry="5" fill={INK} />
+        {/* looped rope */}
+        <path d="M62 232 q24 4 8 18 q-14 10 -2 -2" fill="none" stroke={PAPER} strokeWidth={3} opacity={0.85} />
+        <path d="M62 232 q24 4 8 18 q-14 10 -2 -2" fill="none" stroke={INK} strokeWidth={1} />
+        {/* a fish crate on the dock */}
+        <rect x="300" y="220" width="56" height="26" rx={3} fill={MINT} stroke={INK} strokeWidth={2.5} />
+        {[312, 328, 344].map((x) => (
+          <path key={x} d={`M${x} 232 q5 -4 10 0 q-5 4 -10 0 Z`} fill={SKY} stroke={INK} strokeWidth={1} />
+        ))}
+      </g>
+
       <Speckle color={BLUE} seed={7} count={18} opacity={0.12} />
     </svg>
   );
@@ -451,6 +572,21 @@ function PlatformScene() {
       {/* station hall */}
       <rect width="400" height="280" fill={GRAPE} opacity={0.12} />
       <rect y="200" width="400" height="80" fill={INK} opacity={0.08} />
+
+      {/* BACKGROUND: vaulted iron roof trusses receding overhead (depth) */}
+      <g aria-hidden opacity={0.4}>
+        <path d="M0 14 Q200 -28 400 14" fill="none" stroke={INK} strokeWidth={2} />
+        <path d="M0 30 Q200 -8 400 30" fill="none" stroke={INK} strokeWidth={1.5} />
+        {[40, 120, 200, 280, 360].map((x) => (
+          <line key={x} x1={x} y1={2} x2={x} y2={36} stroke={INK} strokeWidth={1.2} />
+        ))}
+      </g>
+
+      {/* station name sign hung across the hall */}
+      <g aria-hidden>
+        <rect x="44" y="12" width="104" height="20" rx="3" fill={PINE} stroke={INK} strokeWidth={2} />
+        <text x="96" y="26" textAnchor="middle" fontFamily="var(--font-space-mono)" fontSize="10" fill={PAPER} letterSpacing="3">CENTRALE</text>
+      </g>
 
       {/* arched windows along the back */}
       {[40, 130, 220, 310].map((x) => (
@@ -512,6 +648,21 @@ function PlatformScene() {
       <rect x="0" y="222" width="400" height="10" fill={INK} />
       <rect x="0" y="222" width="400" height="3" fill={SUNNY} opacity={0.7} />
 
+      {/* FOREGROUND: a waiting bench + a stickered traveler's suitcase */}
+      <g aria-hidden>
+        {/* suitcase */}
+        <rect x="40" y="238" width="46" height="34" rx={5} fill={MARIGOLD} stroke={INK} strokeWidth={2.5} />
+        <rect x="40" y="250" width="46" height="6" fill={INK} opacity={0.2} />
+        <rect x="56" y="232" width="14" height="8" rx={3} fill="none" stroke={INK} strokeWidth={2.5} />
+        <rect x="48" y="244" width="9" height="9" rx={2} fill={CORAL} stroke={INK} strokeWidth={1.5} />
+        <circle cx="74" cy="262" r="4" fill={SKY} stroke={INK} strokeWidth={1.5} />
+        {/* bench */}
+        <rect x="300" y="244" width="78" height="8" rx={3} fill={PINE} stroke={INK} strokeWidth={2.5} />
+        <rect x="304" y="252" width="8" height="20" fill={INK} />
+        <rect x="366" y="252" width="8" height="20" fill={INK} />
+        <rect x="300" y="234" width="78" height="8" rx={3} fill={PINE} opacity={0.7} stroke={INK} strokeWidth={2} />
+      </g>
+
       {/* departure signal */}
       <line x1="370" y1="108" x2="370" y2="78" stroke={INK} strokeWidth={3} />
       <rect x="362" y="62" width="16" height="22" rx="4" fill={INK} />
@@ -544,29 +695,62 @@ export function SceneBackground({ id, alt }: { id: string; alt: string }) {
 // ---- NPC portrait: characterful riso local with idle breath + blink ----
 // Each NPC gets a body color, a paper face, a distinct hat/hair, and a prop
 // hint so the cast reads as a little troupe of travel companions.
+type Hat = "cap" | "scarf" | "apron" | "beanie" | "tie" | "sunhat" | "sailor" | "curls";
 type NpcLook = {
   body: string;
   accent: string;
-  hat: "cap" | "scarf" | "apron" | "beanie" | "tie";
+  hat: Hat;
   cheek: string;
 };
 
 const AVATAR_LOOK: Record<string, NpcLook> = {
+  // The five scene locals: each a clearly different head + role read.
   "officer-border": { body: BLUE, accent: MARIGOLD, hat: "cap", cheek: SKY },
-  "vendor-market": { body: CORAL, accent: MARIGOLD, hat: "scarf", cheek: BUBBLE },
+  "vendor-market": { body: CORAL, accent: MARIGOLD, hat: "sunhat", cheek: BUBBLE },
   "barista-cafe": { body: PINE, accent: PAPER, hat: "apron", cheek: MINT },
-  "sailor-harbor": { body: GRAPE, accent: PINK, hat: "beanie", cheek: SKY },
+  "sailor-harbor": { body: GRAPE, accent: PINK, hat: "sailor", cheek: SKY },
   "agent-platform": { body: INK, accent: SUNNY, hat: "tie", cheek: BUBBLE },
   // pick-your-travel-buddy options — each visually distinct
   "avatar-wren": { body: GRAPE, accent: SUNNY, hat: "beanie", cheek: BUBBLE },
-  "avatar-fox": { body: CORAL, accent: SKY, hat: "cap", cheek: MINT },
+  "avatar-fox": { body: CORAL, accent: SKY, hat: "curls", cheek: MINT },
   "avatar-moth": { body: PINE, accent: BUBBLE, hat: "scarf", cheek: SKY },
-  "avatar-crane": { body: BLUE, accent: PINK, hat: "tie", cheek: SUNNY },
+  "avatar-crane": { body: BLUE, accent: PINK, hat: "sunhat", cheek: SUNNY },
   default: { body: BLUE, accent: MARIGOLD, hat: "cap", cheek: BUBBLE },
 };
 
-function Headwear({ hat, accent }: { hat: NpcLook["hat"]; accent: string }) {
+function Headwear({ hat, accent }: { hat: Hat; accent: string }) {
   switch (hat) {
+    case "sunhat":
+      // wide straw brim with a ribbon band — market/seaside character
+      return (
+        <g>
+          <ellipse cx="70" cy="48" rx="50" ry="11" fill={MARIGOLD} stroke={INK} strokeWidth={2} />
+          <path d="M48 50 Q70 18 92 50 Q70 40 48 50 Z" fill={SUNNY} stroke={INK} strokeWidth={2} />
+          <rect x="50" y="44" width="40" height="6" rx="3" fill={accent} stroke={INK} strokeWidth={1.2} />
+          {/* a little tucked flower */}
+          <circle cx="86" cy="44" r="4" fill={CORAL} stroke={INK} strokeWidth={1} />
+        </g>
+      );
+    case "sailor":
+      // round sailor cap with a pom and a chinstrap band
+      return (
+        <g>
+          <path d="M40 56 Q70 24 100 56 Q70 44 40 56 Z" fill={PAPER} stroke={INK} strokeWidth={2} />
+          <rect x="40" y="52" width="60" height="8" rx="4" fill={accent} stroke={INK} strokeWidth={1.5} />
+          <circle cx="70" cy="28" r="5" fill={CORAL} stroke={INK} strokeWidth={1.5} />
+        </g>
+      );
+    case "curls":
+      // a bouncy head of curls instead of a hat — varies the silhouette
+      return (
+        <g>
+          {[
+            [42, 50], [52, 38], [70, 32], [88, 38], [98, 50], [60, 34], [80, 34],
+          ].map(([cx, cy], i) => (
+            <circle key={i} cx={cx} cy={cy} r={11} fill={accent} stroke={INK} strokeWidth={1.5} />
+          ))}
+        </g>
+      );
     case "cap":
       return (
         <g>
