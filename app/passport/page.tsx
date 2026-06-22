@@ -108,7 +108,7 @@ export default function Passport() {
                       transition={{ type: "spring", stiffness: 320, damping: 20, delay: (i % 3) * 0.05 }}
                       // Poke a stamp and it gives a happy little rubber-stamp wiggle.
                       whileHover={reduce ? undefined : { scale: 1.06, rotate: 2 }}
-                      whileTap={reduce ? undefined : { scale: 0.92, rotate: [-4, 4, -2, 0] }}
+                      whileTap={reduce ? undefined : { scale: 0.92, rotate: [-4, 4, -2, 0], transition: { duration: 0.4, ease: "easeInOut" } }}
                       className="cursor-pointer"
                       title={`${SCENES[id].place} — stamped`}
                     >
