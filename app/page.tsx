@@ -266,7 +266,11 @@ export default function Arrival() {
                         whileTap={{ scale: 0.92 }}
                         // A friendly "pick me!" wave on hover for the buddies still
                         // waiting to be chosen — dropped entirely under reduced motion.
-                        whileHover={reduce || active ? undefined : { rotate: [0, -6, 6, -3, 0] }}
+                        whileHover={
+                          reduce || active
+                            ? undefined
+                            : { rotate: [0, -6, 6, -3, 0], transition: { duration: 0.5, ease: "easeInOut" } }
+                        }
                         animate={active ? { y: -4 } : { y: 0 }}
                         transition={{ type: "spring", stiffness: 400, damping: 18 }}
                         className={`relative rounded-sm border-2 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-grape/50 ${
