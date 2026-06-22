@@ -5,15 +5,15 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 // Shared riso button. Inky, printed, with an offset color "shadow" block.
 export function PrimaryButton({
   children,
-  color = "var(--riso-blue)",
+  color = "var(--coral)",
   className = "",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { color?: string }) {
   return (
     <button
       {...props}
-      className={`font-display font-bold uppercase tracking-wide text-paper px-6 py-3 rounded-sm transition-transform enabled:hover:-translate-y-0.5 enabled:active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
-      style={{ background: color, boxShadow: "4px 4px 0 var(--ink)" }}
+      className={`pill font-display font-extrabold uppercase tracking-wide text-paper px-7 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none ${className}`}
+      style={{ background: color }}
     >
       {children}
     </button>
@@ -28,7 +28,7 @@ export function GhostButton({
   return (
     <button
       {...props}
-      className={`font-display font-bold uppercase tracking-wide text-ink px-5 py-2.5 rounded-sm border-2 border-ink transition-colors enabled:hover:bg-ink enabled:hover:text-paper disabled:opacity-40 ${className}`}
+      className={`pill font-display font-extrabold uppercase tracking-wide text-ink bg-paper px-6 py-2.5 enabled:hover:bg-sunny disabled:opacity-40 disabled:shadow-none ${className}`}
     >
       {children}
     </button>

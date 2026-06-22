@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { Bricolage_Grotesque, Newsreader, Space_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, Newsreader, Space_Mono, Press_Start_2P } from "next/font/google";
+import { SoundToggle } from "@/components/design/SoundToggle";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -21,6 +22,19 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
 });
 
+const pixel = Press_Start_2P({
+  variable: "--font-pixel",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#ece6da",
+};
+
 export const metadata: Metadata = {
   title: "Parley — learn a language by living in it",
   description:
@@ -35,9 +49,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${newsreader.variable} ${spaceMono.variable} h-full`}
+      className={`${bricolage.variable} ${newsreader.variable} ${spaceMono.variable} ${pixel.variable} h-full`}
     >
-      <body className="grain min-h-full">{children}</body>
+      <body className="grain min-h-full">
+        <SoundToggle />
+        {children}
+      </body>
     </html>
   );
 }

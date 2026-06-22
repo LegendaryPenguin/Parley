@@ -75,6 +75,14 @@ export const mockStorage = {
     const raw = read(K.records(playerId));
     return raw ? (JSON.parse(raw) as SceneRecord[]) : [];
   },
+  // Append a fully-formed record (used by live storage, which supplies a real
+  // 0G Storage root + keccak hash instead of the mock fakes).
+  async appendRecord(rec: SceneRecord) {
+    const raw = read(K.records(rec.playerId));
+    const list: SceneRecord[] = raw ? JSON.parse(raw) : [];
+    list.push(rec);
+    write(K.records(rec.playerId), JSON.stringify(list));
+  },
   async setAnchor(playerId: string, recordHash: string, txHash: string) {
     const raw = read(K.records(playerId));
     if (!raw) return;

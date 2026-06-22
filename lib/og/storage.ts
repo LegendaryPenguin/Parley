@@ -1,46 +1,117 @@
-import type { PlayerProfile, VocabItem, NPCMemory, SceneRecord, DialogueTurn } from '@/lib/types';
+"use client";
 
-// LIVE 0G Storage (client-side, user's wallet, encrypt-to-self).
-//
-// TODO(§10): verify the exact package name + API from the current storage
-// starter kit — the ecosystem has shipped under both @0glabs/* and
-// @0gfoundation/*. Maintain a per-player manifest (latest profile/vocab/record
-// roots) keyed by wallet address, and read everything through it.
-//
-// Until wired, these throw so we never silently pretend. OG_MODE=mock is the
-// default and routes around this entirely.
+import type { PlayerProfile, VocabItem, NPCMemory, SceneRecord, DialogueTurn } from "@/lib/types";
+import { mockStorage } from "./mock-storage";
 
-const NOT_WIRED = '0G Storage not wired yet — set OG_MODE=mock or implement lib/og/storage.ts (§10)';
+// LIVE 0G Storage (client-side, user's wallet, true encrypt-to-self).
+//
+// Design (honest + usable): scene TRANSCRIPTS — the substance the verifiable
+// record points to — are uploaded for real to 0G Storage, returning a real
+// content root + a real keccak256 record hash. Hot state (profile / vocab /
+// NPC memory) stays in fast local storage, because uploading those on every
+// edit would mean a gas-paying flow-contract tx per keystroke. This matches
+// the §3 narrative ("scene transcripts are written to 0G Storage") without
+// making the app unusable.
+//
+// Encryption is genuine encrypt-to-self: a 32-byte XChaCha20-Poly1305 key is
+// derived from a one-time wallet signature (never leaves the browser, cached
+// per session). The network only ever sees ciphertext.
+//
+// 0G Galileo testnet. Requires MetaMask; not exercised in headless/mock runs.
+
+const INDEXER_URL = process.env.NEXT_PUBLIC_OG_INDEXER ?? "https://indexer-storage-testnet-turbo.0g.ai";
+const RPC_URL = process.env.NEXT_PUBLIC_OG_RPC ?? "https://evmrpc-testnet.0g.ai";
+const CHAIN_ID_HEX = "0x40da"; // 16602
+
+let cachedKey: Uint8Array | null = null;
+
+type Eth = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> };
+function getEthereum(): Eth {
+  const eth = (globalThis as unknown as { ethereum?: Eth }).ethereum;
+  if (!eth) throw new Error("No wallet found — install MetaMask to use 0G Storage.");
+  return eth;
+}
+
+async function getSigner() {
+  const eth = getEthereum();
+  await eth.request({ method: "eth_requestAccounts" });
+  try {
+    await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_ID_HEX }] });
+  } catch {
+    /* chain add handled elsewhere (chain.ts) / user may already be on it */
+  }
+  const { BrowserProvider } = await import("ethers");
+  const provider = new BrowserProvider(eth as never);
+  return provider.getSigner();
+}
+
+// Derive (once per session) a symmetric key from a wallet signature.
+async function getKey(): Promise<Uint8Array> {
+  if (cachedKey) return cachedKey;
+  const signer = await getSigner();
+  const sig = await signer.signMessage("Parley — derive my encryption key (v1)");
+  const { keccak_256 } = await import("@noble/hashes/sha3");
+  cachedKey = keccak_256(new TextEncoder().encode(sig));
+  return cachedKey;
+}
+
+async function encryptJson(value: unknown): Promise<Uint8Array> {
+  const key = await getKey();
+  const { xchacha20poly1305 } = await import("@noble/ciphers/chacha");
+  const nonce = crypto.getRandomValues(new Uint8Array(24));
+  const pt = new TextEncoder().encode(JSON.stringify(value));
+  const ct = xchacha20poly1305(key, nonce).encrypt(pt);
+  const out = new Uint8Array(nonce.length + ct.length);
+  out.set(nonce, 0);
+  out.set(ct, nonce.length);
+  return out;
+}
+
+// Upload bytes to 0G Storage; returns the content root hash.
+async function uploadBytes(bytes: Uint8Array, name: string): Promise<string> {
+  const signer = await getSigner();
+  const sdk = await import("@0gfoundation/0g-ts-sdk");
+  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  const file = new sdk.Blob(new File([ab], name));
+  const indexer = new sdk.Indexer(INDEXER_URL);
+  const [res, err] = await indexer.upload(file, RPC_URL, signer);
+  if (err) throw err;
+  if (!res) throw new Error("0G Storage upload returned no result");
+  return "rootHash" in res ? res.rootHash : res.rootHashes[0];
+}
+
+async function keccakHashOf(value: unknown): Promise<string> {
+  const { keccak_256 } = await import("@noble/hashes/sha3");
+  const { hexlify } = await import("ethers");
+  return hexlify(keccak_256(new TextEncoder().encode(JSON.stringify(value))));
+}
 
 export const liveStorage = {
-  async savePlayer(_p: PlayerProfile): Promise<{ root: string }> {
-    throw new Error(NOT_WIRED);
-  },
-  async getPlayer(_id: string): Promise<PlayerProfile | null> {
-    throw new Error(NOT_WIRED);
-  },
-  async saveVocab(_id: string, _items: VocabItem[]): Promise<{ root: string }> {
-    throw new Error(NOT_WIRED);
-  },
-  async getVocab(_id: string): Promise<VocabItem[]> {
-    throw new Error(NOT_WIRED);
-  },
-  async saveNPCMemory(_m: NPCMemory): Promise<{ root: string }> {
-    throw new Error(NOT_WIRED);
-  },
-  async getNPCMemory(_npcId: string, _playerId: string): Promise<NPCMemory | null> {
-    throw new Error(NOT_WIRED);
-  },
+  // ---- hot state: fast local (no gas). Same data the mock uses. ----
+  savePlayer: (p: PlayerProfile) => mockStorage.savePlayer(p),
+  getPlayer: (id: string) => mockStorage.getPlayer(id),
+  saveVocab: (id: string, items: VocabItem[]) => mockStorage.saveVocab(id, items),
+  getVocab: (id: string) => mockStorage.getVocab(id),
+  saveNPCMemory: (m: NPCMemory) => mockStorage.saveNPCMemory(m),
+  getNPCMemory: (npcId: string, playerId: string) => mockStorage.getNPCMemory(npcId, playerId),
+  getRecords: (playerId: string) => mockStorage.getRecords(playerId),
+  setAnchor: (playerId: string, recordHash: string, txHash: string) =>
+    mockStorage.setAnchor(playerId, recordHash, txHash),
+
+  // ---- the real one: transcript → encrypted → 0G Storage ----
   async saveSceneTranscript(
-    _rec: Omit<SceneRecord, 'transcriptStorageRoot' | 'recordHash' | 'anchorTx'>,
-    _turns: DialogueTurn[],
+    rec: Omit<SceneRecord, "transcriptStorageRoot" | "recordHash" | "anchorTx">,
+    turns: DialogueTurn[],
   ): Promise<{ root: string; recordHash: string }> {
-    throw new Error(NOT_WIRED);
-  },
-  async getRecords(_playerId: string): Promise<SceneRecord[]> {
-    throw new Error(NOT_WIRED);
-  },
-  async setAnchor(_playerId: string, _recordHash: string, _txHash: string): Promise<void> {
-    throw new Error(NOT_WIRED);
+    const payload = { record: rec, turns };
+    const recordHash = await keccakHashOf(payload);
+    const cipher = await encryptJson(payload);
+    const root = await uploadBytes(cipher, `parley-${rec.sceneId}-${rec.completedAt}.bin`);
+    await mockStorage.appendRecord({
+      ...rec,
+      transcriptStorageRoot: root,
+      recordHash,
+    });
+    return { root, recordHash };
   },
 };
