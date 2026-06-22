@@ -20,6 +20,7 @@ export default function Passport() {
   const { hydrated, profile } = useBoot();
   const records = useGame((s) => s.records);
   const vocab = useGame((s) => s.vocab);
+  const resetJourney = useGame((s) => s.resetJourney);
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -165,6 +166,24 @@ export default function Passport() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* start over — forget this traveler and return to Arrival */}
+      <section className="mt-10 border-t-2 border-dashed border-ink/20 pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="font-read italic text-ink-soft text-sm">
+          Done travelling for now? You can pack up this passport and set off as someone new.
+        </p>
+        <button
+          onClick={() => {
+            if (confirm("Start a new journey? This clears your passport, words, and stamps on this device.")) {
+              resetJourney();
+              router.push("/");
+            }
+          }}
+          className="pill shrink-0 font-display font-extrabold uppercase tracking-wide text-ink bg-paper px-5 py-2.5 enabled:hover:bg-sunny focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        >
+          Start a new journey
+        </button>
       </section>
     </main>
   );

@@ -28,6 +28,7 @@ import {
   mergeVocab,
   updateSrsOnReview,
 } from "@/lib/engine";
+import { ACTIVE_WALLET_KEY } from "./boot";
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -53,6 +54,7 @@ interface GameState {
     level: CEFR;
   }) => Promise<void>;
   setLevel: (level: CEFR) => Promise<void>;
+  resetJourney: () => void;
   completeScene: (args: {
     sceneId: string;
     startedAt: number;
@@ -104,6 +106,20 @@ export const useGame = create<GameState>((set, get) => ({
     const next = { ...profile, level, updatedAt: Date.now() };
     await savePlayer(next);
     set({ profile: next });
+  },
+
+  // Forget the saved traveler so the app returns to Arrival (a fresh journey).
+  resetJourney() {
+    const id = get().profile?.id;
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ACTIVE_WALLET_KEY);
+      if (id) {
+        window.localStorage.removeItem(`pw:player:${id}`);
+        window.localStorage.removeItem(`pw:vocab:${id}`);
+        window.localStorage.removeItem(`pw:records:${id}`);
+      }
+    }
+    set({ profile: null, vocab: [], records: [], hydrated: true });
   },
 
   async completeScene({ sceneId, startedAt, turns, judge, keyLine }) {
