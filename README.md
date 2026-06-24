@@ -87,6 +87,19 @@ The most important design decision: **`lib/og` is the only thing that touches 0G
 
 > **Honesty note:** the verified record proves the *integrity of the record and that a real, attested model graded it* — not that the work was unaided. We don't overclaim.
 
+## 🔍 Verify the 0G claims (for judges)
+
+Don't take our word for it — every claim maps to code:
+
+| Claim | Where | Quick check |
+|---|---|---|
+| Live inference per turn | `lib/og/compute.ts` (`liveChat`/`liveJudge`) | `grep -rn x_0g_trace lib/og` · in-app: the pine "answered live on 0G" chip + request ids in the dev panel |
+| Encrypt-to-self storage | `lib/og/storage.ts` (`encryptJson`/`uploadBytes`/`downloadTranscript`) | `grep -rn xchacha20poly1305 lib/og` |
+| On-chain anchor | `lib/og/chain.ts` (`anchor`) | `grep -rn keccak lib/og/chain.ts` · completed-scene tx on `chainscan-galileo.0g.ai` |
+| 0G is the only seam | `lib/og/index.ts` | nothing else imports a 0G SDK (`grep -rn "0g-ts-sdk" --include=*.ts | grep -v lib/og`) |
+
+See **[JUDGE.md](JUDGE.md)** for a step-by-step verification guide and **[ARCHITECTURE.md](ARCHITECTURE.md)** for the layer-by-layer breakdown. A 60-second demo script is in **[DEMO.md](DEMO.md)**.
+
 ## 📚 What We Learned
 
 - **Designing a seam pays for itself.** Putting every 0G call behind one typed `lib/og` interface — with mock and live implementations that toggle independently per service — meant the entire game was playable offline on day one, and swapping in real testnet Compute, Storage, and Chain never touched a single screen.
@@ -119,6 +132,10 @@ NEXT_PUBLIC_OG_CHAIN_MODE=live
 Each inference call costs ~0.00003 0G on testnet. The three layers (Compute / Storage / Chain) toggle independently, so you can run live inference with mock persistence for a smooth no-wallet demo.
 
 **Architecture diagram** — regenerate with `python3 docs/diagrams/gen_architecture.py` (source `.excalidraw` + generator live in `docs/diagrams/`).
+
+## 📄 License & author
+
+MIT — see [LICENSE](LICENSE). Built by **Nischay Rawal** ([@LegendaryPenguin](https://github.com/LegendaryPenguin)) for the **0G Zero Cup**.
 
 ---
 

@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTxLog, type TxEntry } from "@/lib/dev/txlog";
 import { ChainIcon, StorageIcon, CpuIcon } from "./Icons";
 
-// Unobtrusive 0G activity panel — a small chip bottom-left that opens a live log
+// Unobtrusive 0G activity panel — a small chip bottom-right that opens a live log
 // of compute calls, storage uploads, and on-chain anchors, with explorer links
 // you can open. Handy for demos ("watch the transactions land").
 

@@ -17,6 +17,18 @@ function headers() {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${KEY}` };
 }
 
+// Fail fast with an actionable message rather than a cryptic 401 mid-demo.
+function assertKey() {
+  if (!KEY || KEY.length < 12) {
+    throw new Error(
+      'OG_ROUTER_API_KEY is not set. Get one at pc.testnet.0g.ai, fund via faucet.0g.ai, ' +
+        'and add it to .env.local (see README §Setup). Or run with OG_COMPUTE_MODE=mock.',
+    );
+  }
+}
+
+const REQUEST_TIMEOUT_MS = 30_000;
+
 let cachedModel: string | null = null;
 
 interface RawModel {
@@ -56,17 +68,32 @@ async function pickModel(): Promise<string> {
 }
 
 async function completion(messages: ChatMsg[], opts?: ChatOpts) {
+  assertKey();
   const model = opts?.model ?? (await pickModel());
-  const res = await fetch(`${BASE}/chat/completions`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: opts?.temperature ?? 0.7,
-      max_tokens: opts?.maxTokens ?? 256,
-    }),
-  });
+  // Abort a stuck request so a flaky testnet node never hangs the UI forever.
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/chat/completions`, {
+      method: 'POST',
+      headers: headers(),
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: opts?.temperature ?? 0.7,
+        max_tokens: opts?.maxTokens ?? 256,
+      }),
+    });
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error('0G Compute timed out — the testnet node was slow. Tap to retry.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) throw new Error(`0G chat failed: ${res.status} ${await res.text()}`);
   const data = await res.json();
   const text: string = data.choices?.[0]?.message?.content ?? '';
@@ -87,6 +114,38 @@ export async function liveChat(messages: ChatMsg[], opts?: ChatOpts) {
   return completion(messages, opts);
 }
 
+const JUDGE_FALLBACK: Partial<JudgeResult> = {
+  goalMet: false,
+  fluency: 50,
+  corrections: [],
+  newWordsUsed: [],
+  difficultyHint: 0,
+};
+
+// Pull the FIRST complete, brace-balanced JSON object out of the model's text
+// (handles ```json fences, leading prose, or trailing junk). Falls back to a
+// conservative result rather than silently accepting a malformed grade.
+function extractJudgeJson(text: string): Partial<JudgeResult> {
+  const cleaned = text.replace(/```json/gi, '').replace(/```/g, '');
+  const start = cleaned.indexOf('{');
+  if (start === -1) return JUDGE_FALLBACK;
+  let depth = 0;
+  for (let i = start; i < cleaned.length; i++) {
+    if (cleaned[i] === '{') depth++;
+    else if (cleaned[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(cleaned.slice(start, i + 1)) as Partial<JudgeResult>;
+        } catch {
+          return JUDGE_FALLBACK;
+        }
+      }
+    }
+  }
+  return JUDGE_FALLBACK;
+}
+
 export async function liveJudge(prompt: JudgePrompt): Promise<JudgeResult> {
   const transcriptText = prompt.transcript
     .map((t) => `${t.role}: ${t.textTarget ?? t.textNative ?? ''}`)
@@ -96,14 +155,7 @@ export async function liveJudge(prompt: JudgePrompt): Promise<JudgeResult> {
     { role: 'user', content: transcriptText },
   ];
   const { text, attestation } = await completion(messages, { temperature: 0 });
-  const jsonStr = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
-  let parsed: Partial<JudgeResult> = {};
-  try {
-    parsed = JSON.parse(jsonStr);
-  } catch {
-    // Fall back to a conservative result if the model didn't return clean JSON.
-    parsed = { goalMet: false, fluency: 50, corrections: [], newWordsUsed: [], difficultyHint: 0 };
-  }
+  const parsed = extractJudgeJson(text);
   return {
     goalMet: !!parsed.goalMet,
     fluency: parsed.fluency ?? 50,

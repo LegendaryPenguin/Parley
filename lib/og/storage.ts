@@ -67,6 +67,15 @@ async function encryptJson(value: unknown): Promise<Uint8Array> {
   return out;
 }
 
+async function decryptJson(bytes: Uint8Array): Promise<unknown> {
+  const key = await getKey();
+  const { xchacha20poly1305 } = await import("@noble/ciphers/chacha");
+  const nonce = bytes.slice(0, 24);
+  const ct = bytes.slice(24);
+  const pt = xchacha20poly1305(key, nonce).decrypt(ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
 // Upload bytes to 0G Storage; returns the content root hash.
 async function uploadBytes(bytes: Uint8Array, name: string): Promise<string> {
   const signer = await getSigner();
@@ -84,6 +93,18 @@ async function keccakHashOf(value: unknown): Promise<string> {
   const { keccak_256 } = await import("@noble/hashes/sha3");
   const { hexlify } = await import("ethers");
   return hexlify(keccak_256(new TextEncoder().encode(JSON.stringify(value))));
+}
+
+// Round-trip: download an encrypted transcript from 0G Storage by content root
+// and decrypt it to oneself. Proves the stored record is genuinely retrievable
+// and owned by the user (the "portable / yours" claim).
+async function downloadTranscript(root: string): Promise<{ record: unknown; turns: unknown } | null> {
+  const sdk = await import("@0gfoundation/0g-ts-sdk");
+  const indexer = new sdk.Indexer(INDEXER_URL);
+  const [blob, err] = await indexer.downloadToBlob(root);
+  if (err || !blob) return null;
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  return (await decryptJson(bytes)) as { record: unknown; turns: unknown };
 }
 
 export const liveStorage = {
@@ -114,4 +135,8 @@ export const liveStorage = {
     });
     return { root, recordHash };
   },
+
+  // Read an encrypted transcript back from 0G Storage by content root (the
+  // "your record is genuinely retrievable + yours" round-trip).
+  getTranscript: (root: string) => downloadTranscript(root),
 };

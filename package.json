@@ -2,6 +2,25 @@
   "name": "parley",
   "version": "0.1.0",
   "private": true,
+  "description": "Learn a language by living in it — an explorable risograph world where every NPC turn is live 0G inference, memory lives encrypted on 0G Storage, and each stage is anchored on 0G Chain.",
+  "author": "Nischay Rawal",
+  "license": "MIT",
+  "homepage": "https://github.com/LegendaryPenguin/Parley#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LegendaryPenguin/Parley.git"
+  },
+  "keywords": [
+    "0g",
+    "0g-compute",
+    "0g-storage",
+    "0g-chain",
+    "decentralized-ai",
+    "language-learning",
+    "web3",
+    "tee",
+    "nextjs"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
