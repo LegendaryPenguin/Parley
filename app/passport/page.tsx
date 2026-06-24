@@ -13,7 +13,8 @@ import { Stamp } from "@/components/design/Stamp";
 import { Postcard } from "@/components/design/Postcard";
 import { PixelBadge, Confetti } from "@/components/design/Playful";
 import { StorageIcon, ShieldCheckIcon, CpuIcon, ChainIcon } from "@/components/design/Icons";
-import { chainTxUrl, storageUrl } from "@/lib/dev/txlog";
+import { chainTxUrl, storageUrl, logChain } from "@/lib/dev/txlog";
+import { mintStageCredential, inftEnabled } from "@/lib/og/inft";
 
 // Real on-chain/storage hashes are 0x + 64 hex; mock/demo values are shorter,
 // so only real ones become clickable explorer links.
@@ -215,8 +216,38 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const reduce = useReducedMotion();
+  const profile = useGame((s) => s.profile);
   const scene = SCENES[record.sceneId];
   const date = new Date(record.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+  // INFT minting (soulbound stage credential) — only when a contract is configured
+  // and this record carries a real on-chain-grade hash.
+  const [minting, setMinting] = useState(false);
+  const [minted, setMinted] = useState<{ tokenId?: string; txHash: string } | null>(null);
+  const [mintErr, setMintErr] = useState<string | null>(null);
+  const canMint = inftEnabled() && isRealHash(record.recordHash) && !!profile;
+
+  async function mint() {
+    if (!profile) return;
+    setMinting(true);
+    setMintErr(null);
+    try {
+      const r = await mintStageCredential({
+        to: profile.id,
+        storageRoot: record.transcriptStorageRoot,
+        recordHash: record.recordHash,
+        skill: scene?.skill ?? record.sceneId,
+        language: profile.targetLanguage,
+        fluency: record.fluencyScore,
+      });
+      setMinted(r);
+      logChain(`INFT · ${scene?.place ?? record.sceneId}`, r.txHash, true);
+    } catch (e) {
+      setMintErr(e instanceof Error ? e.message : "Mint failed");
+    } finally {
+      setMinting(false);
+    }
+  }
 
   function toggle() {
     setOpen((o) => {
@@ -291,7 +322,7 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
           <p className="font-read italic text-ink-soft text-sm pt-1">
             This record&apos;s fingerprint is anchored on-chain; it can&apos;t be altered after the fact.
           </p>
-          <div className="pt-1">
+          <div className="pt-1 flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShareOpen(true)}
               className="pill inline-flex items-center gap-1 font-display font-extrabold uppercase tracking-wide text-paper px-5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
@@ -299,7 +330,29 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
             >
               Send a postcard ↗
             </button>
+            {canMint &&
+              (minted ? (
+                <a
+                  href={chainTxUrl(minted.txHash)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="pill inline-flex items-center gap-1 font-display font-extrabold uppercase tracking-wide text-paper px-5 py-2 text-sm"
+                  style={{ background: "var(--pine)" }}
+                >
+                  Credential{minted.tokenId ? ` #${minted.tokenId}` : ""} minted ↗
+                </a>
+              ) : (
+                <button
+                  onClick={mint}
+                  disabled={minting}
+                  className="pill inline-flex items-center gap-1 font-display font-extrabold uppercase tracking-wide text-paper px-5 py-2 text-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                  style={{ background: "var(--grape)" }}
+                >
+                  {minting ? "Minting…" : "Mint credential ⬡"}
+                </button>
+              ))}
           </div>
+          {mintErr && <p className="font-read italic text-coral text-xs pt-1">{mintErr}</p>}
         </div>
       )}
       {shareOpen && <ShareModal record={record} onClose={() => setShareOpen(false)} />}
