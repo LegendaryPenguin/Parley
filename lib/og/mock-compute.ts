@@ -8,8 +8,8 @@ import { getSceneScript, normalize, matchesAll, matchesAnyWord } from '@/lib/con
 const MOCK_ATTESTATION = {
   provider: '0g-compute-mock',
   model: 'mock-llama-3.1-8b',
-  signature: '0xMOCKSIGdeadbeefcafe…',
-  raw: { teeVerified: true, note: 'mock attestation — replace with live TEE signature' },
+  signature: 'MOCK-no-real-attestation',
+  raw: { isMock: true, teeVerified: false, note: 'offline demo — not a real TEE attestation' },
 };
 
 function lastPlayer(messages: ChatMsg[]): string {

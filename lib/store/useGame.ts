@@ -30,6 +30,7 @@ import {
   vocabFromJudge,
   mergeVocab,
   updateSrsOnReview,
+  adaptDifficulty,
 } from "@/lib/engine";
 import { ACTIVE_WALLET_KEY } from "./boot";
 
@@ -184,8 +185,11 @@ export const useGame = create<GameState>((set, get) => ({
       : [...profile.visitedSceneIds, sceneId];
     const streakDays =
       profile.lastActiveDay === today() ? profile.streakDays : profile.streakDays + 1;
+    // adapt CEFR level from how this exchange went (the judge's difficultyHint)
+    const { level } = adaptDifficulty(profile, [judge]);
     const nextProfile: PlayerProfile = {
       ...profile,
+      level,
       xp: profile.xp + Math.round(judge.fluency / 2) + trulyNew.length * 5,
       streakDays,
       lastActiveDay: today(),
