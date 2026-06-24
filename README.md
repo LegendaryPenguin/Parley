@@ -8,6 +8,10 @@ Built for the **0G Zero Cup**, Parley is a game where the AI isn't a feature bol
 
 ![Parley architecture](docs/diagrams/parley-architecture.png)
 
+| The Scene (live on 0G) | The Atlas (stages) | The Passport (verified record) |
+|---|---|---|
+| ![Scene](docs/screenshots/scene.png) | ![Atlas](docs/screenshots/atlas.png) | ![Passport](docs/screenshots/passport.png) |
+
 ## ✨ Inspiration
 
 Every flashcard app leaves the same gap wide open: **unscripted conversational production** — actually speaking, under a little pressure, in context. You can grind vocabulary for months and still freeze the first time a vendor asks "¿qué le pongo?" The thing that fixes that is a patient native speaker who will talk to you for hours, meet you at your level, and correct you in the flow — which is exactly what almost nobody has access to, and exactly what a generative model is uniquely good at being.
