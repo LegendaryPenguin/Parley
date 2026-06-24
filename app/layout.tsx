@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Newsreader, Space_Mono, Press_Start_2P } from "next/font/google";
 import { SoundToggle } from "@/components/design/SoundToggle";
+import { DevPanel } from "@/components/design/DevPanel";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -53,6 +54,7 @@ export default function RootLayout({
     >
       <body className="grain min-h-full">
         <SoundToggle />
+        <DevPanel />
         {children}
       </body>
     </html>

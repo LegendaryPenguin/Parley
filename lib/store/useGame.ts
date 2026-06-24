@@ -21,7 +21,10 @@ import {
   setAnchorTx,
   getNPCMemory,
   saveNPCMemory,
+  isMock,
+  isChainMock,
 } from "@/lib/og";
+import { logStorage, logChain } from "@/lib/dev/txlog";
 import { getScene } from "@/lib/content/world";
 import {
   vocabFromJudge,
@@ -147,6 +150,8 @@ export const useGame = create<GameState>((set, get) => ({
       },
       turns,
     );
+    const place = scene?.place ?? sceneId;
+    logStorage(place, root, !isMock);
 
     // 3. anchor on 0G Chain
     let anchorTx: string | undefined;
@@ -154,6 +159,7 @@ export const useGame = create<GameState>((set, get) => ({
       const res = await anchor(recordHash);
       anchorTx = res.txHash;
       await setAnchorTx(profile.id, recordHash, anchorTx);
+      logChain(place, anchorTx, !isChainMock);
     } catch {
       anchorTx = undefined; // anchoring is best-effort; record still saved
     }
