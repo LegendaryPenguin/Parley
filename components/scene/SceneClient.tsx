@@ -37,8 +37,9 @@ export function SceneClient({ id }: { id: string }) {
   const [hintShown, setHintShown] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reward, setReward] = useState<{ judge: JudgeResult; newWords: VocabItem[]; keyLine: string } | null>(null);
-  // Surfaces that the last reply came from real 0G Compute (vs the mock).
-  const [attest, setAttest] = useState<{ model?: string; live: boolean } | null>(null);
+  // Surfaces that the last reply came from real 0G Compute (vs the mock), with
+  // the real round-trip latency — an honest "this is real inference" signal.
+  const [attest, setAttest] = useState<{ model?: string; live: boolean; ms?: number } | null>(null);
   const startedAt = useRef(Date.now());
   const memoryRef = useRef<NPCMemory | null>(null);
   const openedRef = useRef(false);
@@ -53,6 +54,7 @@ export function SceneClient({ id }: { id: string }) {
     setBusy(true);
     try {
       memoryRef.current = await getNPCMemory(scene.npcId, profile.id);
+      const t0 = Date.now();
       const { text, attestation } = await chatTurn({
         sceneId: id,
         profile,
@@ -62,7 +64,7 @@ export function SceneClient({ id }: { id: string }) {
       });
       setTurns([{ role: "npc", textTarget: text, ts: Date.now() }]);
       if (attestation) {
-        setAttest({ model: attestation.model, live: !!attestation.provider?.startsWith("0G Compute ·") });
+        setAttest({ model: attestation.model, live: !!attestation.provider?.startsWith("0G Compute ·"), ms: Date.now() - t0 });
       }
     } catch {
       setError("The local turned away for a moment — tap to catch their eye again.");
@@ -98,6 +100,7 @@ export function SceneClient({ id }: { id: string }) {
     setTurns([...history, playerTurn]);
     setBusy(true);
     try {
+      const t0 = Date.now();
       const { text: npcText, attestation } = await chatTurn({
         sceneId: id,
         profile,
@@ -106,7 +109,7 @@ export function SceneClient({ id }: { id: string }) {
         playerInput: text,
       });
       if (attestation) {
-        setAttest({ model: attestation.model, live: !!attestation.provider?.startsWith("0G Compute ·") });
+        setAttest({ model: attestation.model, live: !!attestation.provider?.startsWith("0G Compute ·"), ms: Date.now() - t0 });
       }
       const npcTurn: DialogueTurn = { role: "npc", textTarget: npcText, ts: Date.now() };
       const newTurns = [...history, playerTurn, npcTurn];
@@ -228,6 +231,7 @@ export function SceneClient({ id }: { id: string }) {
             </span>
             <span className={attest.live ? "text-pine" : "text-ink/45"}>
               {attest.live ? "answered live on 0G" : "demo passage"} · {attest.model}
+              {attest.live && attest.ms ? ` · ${(attest.ms / 1000).toFixed(1)}s` : ""}
             </span>
           </p>
         )}

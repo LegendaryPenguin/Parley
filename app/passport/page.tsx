@@ -13,6 +13,11 @@ import { Stamp } from "@/components/design/Stamp";
 import { Postcard } from "@/components/design/Postcard";
 import { PixelBadge, Confetti } from "@/components/design/Playful";
 import { StorageIcon, ShieldCheckIcon, CpuIcon, ChainIcon } from "@/components/design/Icons";
+import { chainTxUrl, storageUrl } from "@/lib/dev/txlog";
+
+// Real on-chain/storage hashes are 0x + 64 hex; mock/demo values are shorter,
+// so only real ones become clickable explorer links.
+const isRealHash = (v: string) => /^0x[0-9a-fA-F]{64}$/.test(v);
 import type { SceneRecord } from "@/lib/types";
 
 export default function Passport() {
@@ -264,11 +269,16 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
       </button>
       {open && (
         <div className="px-4 pb-4 space-y-2 border-t-2 border-ink/10 pt-3 bg-paper-deep/30">
-          <Field label="storage" value={record.transcriptStorageRoot} icon={<StorageIcon size={15} />} />
+          <Field
+            label="storage"
+            value={record.transcriptStorageRoot}
+            icon={<StorageIcon size={15} />}
+            href={isRealHash(record.transcriptStorageRoot) ? storageUrl(record.transcriptStorageRoot) : undefined}
+          />
           <Field label="record hash" value={record.recordHash} icon={<ShieldCheckIcon size={15} />} />
           <Field
             label="model"
-            value={record.attestation?.model ? `${record.attestation.model} · TEE-signed ✓` : "—"}
+            value={record.attestation?.model ? `${record.attestation.model}${record.attestation.raw && (record.attestation.raw as { isMock?: boolean }).isMock ? " · demo" : " · TEE-signed ✓"}` : "—"}
             icon={<CpuIcon size={15} />}
           />
           <Field
@@ -276,6 +286,7 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
             value={record.anchorTx ? `${record.anchorTx} (0G Chain)` : "pending"}
             icon={<ChainIcon size={15} />}
             tone="pine"
+            href={record.anchorTx && isRealHash(record.anchorTx) ? chainTxUrl(record.anchorTx) : undefined}
           />
           <p className="font-read italic text-ink-soft text-sm pt-1">
             This record&apos;s fingerprint is anchored on-chain; it can&apos;t be altered after the fact.
@@ -296,7 +307,19 @@ function RecordRow({ record, index }: { record: SceneRecord; index: number }) {
   );
 }
 
-function Field({ label, value, icon, tone = "ink" }: { label: string; value: string; icon: React.ReactNode; tone?: "ink" | "pine" }) {
+function Field({
+  label,
+  value,
+  icon,
+  tone = "ink",
+  href,
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  tone?: "ink" | "pine";
+  href?: string;
+}) {
   return (
     <p className="label-mono text-ink/75 break-all leading-relaxed flex items-start gap-2">
       {/* small leading icon so each field reads as a labelled artifact, not a legal line */}
@@ -307,7 +330,13 @@ function Field({ label, value, icon, tone = "ink" }: { label: string; value: str
         {icon}
       </span>
       <span className="inline-block text-ink/45 w-[5rem] sm:w-[5.5rem] shrink-0">{label}</span>
-      <span className="min-w-0">{value}</span>
+      {href ? (
+        <a href={href} target="_blank" rel="noreferrer" className="min-w-0 text-riso-blue hover:underline">
+          {value} ↗
+        </a>
+      ) : (
+        <span className="min-w-0">{value}</span>
+      )}
     </p>
   );
 }
