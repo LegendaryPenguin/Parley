@@ -77,7 +77,7 @@ export default function Passport() {
           <CoverChip color="var(--riso-pink)">🔥 {profile.streakDays}d streak</CoverChip>
           <CoverChip color="var(--sunny)">{profile.xp} XP</CoverChip>
           <CoverChip color="var(--mint)">{vocab.length} words</CoverChip>
-          <CoverChip color="var(--sky)">{visitedCount}/{totalScenes} places</CoverChip>
+          <CoverChip color="var(--sky)">{visitedCount}/{totalScenes} stages</CoverChip>
         </div>
 
         {isMock && (
@@ -87,20 +87,21 @@ export default function Passport() {
         )}
       </motion.div>
 
-      {/* stamp pages — the heart of the booklet */}
+      {/* stage badges — each cleared stage earns its skill stamp */}
       <section className="mt-7">
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-display text-2xl">Your stamps</h2>
-          <span className="label-mono text-ink/50">{visitedCount} collected</span>
+          <h2 className="font-display text-2xl">Stages cleared</h2>
+          <span className="label-mono text-ink/50">{visitedCount}/{totalScenes} levels</span>
         </div>
         <div className="relative border-2 border-ink rounded-sm bg-paper-deep/40 p-5 overprint">
           <div className="absolute inset-0 grain rounded-sm pointer-events-none" aria-hidden />
-          <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-x-4 sm:gap-y-6 justify-items-center">
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-x-4 sm:gap-y-6 justify-items-center">
             {SCENE_ORDER.map((id, i) => {
               const visited = profile.visitedSceneIds.includes(id);
               const colors = ["var(--marigold)", "var(--riso-pink)", "var(--pine)", "var(--grape)", "var(--riso-blue)", "var(--coral)"];
+              const skill = SCENES[id].skill;
               return (
-                <div key={id} className="grid place-items-center text-center">
+                <div key={id} className="grid place-items-center text-center gap-1">
                   {visited ? (
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
@@ -111,11 +112,11 @@ export default function Passport() {
                       whileHover={reduce ? undefined : { scale: 1.06, rotate: 2 }}
                       whileTap={reduce ? undefined : { scale: 0.92, rotate: [-4, 4, -2, 0], transition: { duration: 0.4, ease: "easeInOut" } }}
                       className="cursor-pointer"
-                      title={`${SCENES[id].place} — stamped`}
+                      title={`Level ${i + 1}: ${skill} — cleared at the ${SCENES[id].place.toLowerCase()}`}
                     >
                       <Stamp
                         label={SCENES[id].place}
-                        sublabel="VISITED"
+                        sublabel={`LV ${i + 1}`}
                         color={colors[i % colors.length]}
                         size={96}
                         animate={false}
@@ -126,9 +127,13 @@ export default function Passport() {
                       className="w-24 h-24 grid place-items-center border-2 border-dashed border-ink/30 rounded-full label-mono text-ink/40 px-2 leading-tight float-bob"
                       style={{ animationDelay: `${(i % 4) * 0.4}s` }}
                     >
-                      {SCENES[id].place}
+                      LV {i + 1}
                     </div>
                   )}
+                  {/* the named stage, so badges read as a clear progression */}
+                  <p className={`label-mono text-[0.6rem] leading-tight max-w-[7rem] ${visited ? "text-ink" : "text-ink/40"}`}>
+                    {skill}
+                  </p>
                 </div>
               );
             })}

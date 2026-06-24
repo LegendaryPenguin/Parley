@@ -30,7 +30,6 @@ const es: LangScript = {
     opening: "¿Qué le pongo, joven? Tengo naranjas muy dulces.",
     fallback: "Dígame, joven, ¿qué desea?",
     rules: [
-      { needs: [["una kilo"]], reply: "¿Cómo? ¿Cuántas naranjas, joven?" },
       {
         needs: [["kilo", "naranja"], ["cuanto", "precio", "cuesta", "vale"]],
         reply: "¡Marchando un kilo! Son dos euros. ¿Algo más?",
@@ -39,7 +38,14 @@ const es: LangScript = {
       { needs: [["cuanto", "precio", "cuesta", "vale"]], reply: "Las naranjas están a dos euros el kilo. ¿Le pongo?" },
     ],
     goal: [["kilo", "naranja"], ["cuanto", "cuesta", "precio", "vale", "cuestan"]],
-    corrections: [{ bad: "una kilo", good: "un kilo", note: "try: un kilo (kilo is masculine)" }],
+    corrections: [
+      {
+        bad: "una kilo",
+        good: "un kilo",
+        note: "try: un kilo (kilo is masculine)",
+        recast: "Ah, querrás decir un kilo, ¿verdad? ¿Cuántos le pongo?",
+      },
+    ],
     translations: {
       "¿Qué le pongo, joven? Tengo naranjas muy dulces.": "What can I get you, young one? I have very sweet oranges.",
       "¿Cómo? ¿Cuántas naranjas, joven?": "Sorry? How many oranges, young one?",

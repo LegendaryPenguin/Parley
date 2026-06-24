@@ -50,10 +50,10 @@ export function buildNPCSystemPrompt(
     `You are ${persona.name}, a ${persona.role} at the ${scene.place.toLowerCase()}.`,
     persona.personaPrompt,
     `Speak ONLY in ${lang}, at CEFR ${profile.level} level — short, natural, speakable lines (1–2 sentences).`,
-    `Stay fully in character. NEVER explain grammar or break role to teach.`,
+    `Stay fully in character. NEVER switch to English and never explain grammar in English.`,
     `The traveler is trying to: ${scene.goalSummaryNative}`,
     `Steer the conversation gently toward that goal.`,
-    `If they make a mistake, react naturally as a real person would (mild confusion, ask again) — do not correct them out loud.`,
+    `If they make a clear mistake or say something unnatural, do what a kind local would: gently RECAST the correct phrasing in ${lang} — naturally repeat back the right way to say it (e.g. "Ah, you mean…" then the correct phrase) — and then continue. Keep it warm and brief, never a lecture. If what they said is already fine, just respond naturally.`,
     memoryNote,
   ].join(' ');
 }

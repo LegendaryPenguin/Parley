@@ -22,8 +22,9 @@ export interface SceneScript {
   // goal is met when EVERY group has at least one of its keywords in the
   // player's combined lines. e.g. [["kilo","naranja"],["cuanto","precio"]]
   goal: string[][];
-  // gentle in-flow corrections: if `bad` appears, suggest `good`.
-  corrections?: { bad: string; good: string; note: string }[];
+  // gentle in-flow corrections: if `bad` appears, suggest `good`. `recast` is an
+  // optional in-language line the local says to model the correct phrasing.
+  corrections?: { bad: string; good: string; note: string; recast?: string }[];
   // canned NPC line -> English (tap to translate, offline)
   translations: Record<string, string>;
   // optional NPC line -> romanization (non-Latin scripts)

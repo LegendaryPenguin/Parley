@@ -54,6 +54,7 @@ export interface SceneDefinition {
   title: string;
   place: string;
   npcId: string;
+  skill: string; // the learning stage this place teaches, e.g. "Introductions"
   goalSummaryNative: string; // shown to player (their language)
   successCriteria: string; // fed to the judge
   targetVocab: string[];
