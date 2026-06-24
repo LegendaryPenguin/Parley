@@ -88,6 +88,7 @@ The most important design decision: **`lib/og` is the only thing that touches 0G
 **0G Chain — the verifiable record**
 - Each completed stage anchors `keccak256(recordHash)` in a user-signed tx on Galileo testnet — a tamper-evident credential combining the storage root + the model's TEE attestation.
 - Anchors are explorer-linked in the dev panel so you can watch the on-chain activity live.
+- Optional: mint each cleared stage as a **soulbound INFT credential** (`contracts/ParleyStageCredential.sol`) whose token data is bound to the 0G Storage transcript — an owned, on-chain learning credential. See [contracts/README.md](contracts/README.md).
 
 > **Honesty note:** the verified record proves the *integrity of the record and that a real, attested model graded it* — not that the work was unaided. We don't overclaim.
 
