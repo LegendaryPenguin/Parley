@@ -61,6 +61,12 @@ export default function Atlas() {
           <h1 className="font-display text-3xl leading-tight">
             Where to, {profile.displayName}?
           </h1>
+          {next && (
+            <p className="label-mono text-ink-soft mt-1">
+              Stage {Math.min(explored + 1, total)} of {total} ·{" "}
+              <span className="text-riso-blue">{next.scene.skill}</span>
+            </p>
+          )}
           {/* journey progress, read like stamps in a logbook */}
           <div className="mt-2 flex flex-wrap items-center gap-2" aria-label={`${explored} of ${total} places explored`}>
             {SCENE_ORDER.map((id, i) => (
@@ -150,6 +156,7 @@ export default function Atlas() {
             state={state}
             title={scene.title}
             place={scene.place}
+            skill={scene.skill}
             pos={scene.mapPos}
           />
         ))}
@@ -165,10 +172,10 @@ export default function Atlas() {
       <div className="mt-3 flex items-center justify-between flex-wrap gap-3">
         <p className="font-read italic text-ink-soft">
           {explored === 0
-            ? "Your journey begins at the border. Step up to the booth."
+            ? "Your journey begins with introductions at the border. Step up to the booth."
             : next
-              ? `${explored} place${explored > 1 ? "s" : ""} explored. ${next.scene.place} is expecting you.`
-              : `${explored} places explored. You've talked your way across the whole map.`}
+              ? `${explored} stage${explored > 1 ? "s" : ""} cleared. Next up: ${next.scene.skill} at the ${next.scene.place.toLowerCase()}.`
+              : `All ${total} stages cleared. You've talked your way across the whole map.`}
         </p>
         <div className="flex gap-3">
           <Link
@@ -331,6 +338,7 @@ function PlacePin({
   state,
   title,
   place,
+  skill,
   pos,
 }: {
   id: string;
@@ -338,6 +346,7 @@ function PlacePin({
   state: "visited" | "current" | "locked";
   title: string;
   place: string;
+  skill: string;
   pos: { x: number; y: number };
 }) {
   const reduceMotion = useReducedMotion();
@@ -410,26 +419,26 @@ function PlacePin({
 
   const inner = (
     <div className={`flex flex-col -translate-x-1/2 -translate-y-1/2 ${labelAlign}`}>
-      {/* tiny stop number, like a board-game space */}
+      {/* the stage/level number, like a board-game space */}
       <span
         aria-hidden
         className={`label-mono text-[0.5rem] leading-none mb-0.5 ${
           state === "locked" ? "text-grape/60" : "text-ink/60"
         }`}
       >
-        {index + 1}
+        LV {index + 1}
       </span>
       {marker}
-      {/* labels live BELOW the marker on a paper chip so they never collide with
-          the pin or the route line; small type keeps them tidy on phones */}
+      {/* the stage NAME lives below the marker on a paper chip — wraps to 2 lines
+          (capped width) so it never clips or collides with the route line */}
       {state === "current" ? (
-        <span className="pill label-mono mt-1.5 bg-riso-pink text-paper text-[0.5rem] sm:text-[0.55rem] px-1.5 py-0.5 whitespace-nowrap shadow-[1px_1px_0_var(--ink)]">
-          you’re here
+        <span className="label-mono mt-1.5 max-w-[92px] text-balance bg-riso-pink text-paper text-[0.5rem] sm:text-[0.55rem] px-1.5 py-0.5 rounded-sm shadow-[1px_1px_0_var(--ink)]">
+          {skill}
         </span>
       ) : state === "locked" ? (
-        // a teasing "?????" by default that peeks the real place name on
+        // a teasing "?????" by default that peeks the real stage name on
         // hover/focus — keeps the mystery while rewarding a peek.
-        <span className="relative mt-1 grid label-mono text-[0.5rem] sm:text-[0.55rem] whitespace-nowrap">
+        <span className="relative mt-1 grid label-mono text-[0.5rem] sm:text-[0.55rem] max-w-[92px]">
           <span
             aria-hidden
             className="col-start-1 row-start-1 px-1 text-grape transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
@@ -438,14 +447,14 @@ function PlacePin({
           </span>
           <span
             aria-hidden
-            className="col-start-1 row-start-1 px-1 rounded-sm bg-paper/90 text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+            className="col-start-1 row-start-1 px-1 rounded-sm bg-paper/90 text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 text-balance"
           >
-            {place}
+            {skill}
           </span>
         </span>
       ) : (
-        <span className="label-mono text-[0.5rem] sm:text-[0.55rem] mt-1 px-1 rounded-sm text-ink bg-paper/90 whitespace-nowrap shadow-[1px_1px_0_var(--ink)]">
-          {place}
+        <span className="label-mono text-[0.5rem] sm:text-[0.55rem] mt-1 px-1 rounded-sm text-ink bg-paper/90 max-w-[92px] text-balance shadow-[1px_1px_0_var(--ink)]">
+          {skill}
         </span>
       )}
     </div>

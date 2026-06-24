@@ -56,6 +56,7 @@ export const SCENES: Record<string, SceneDefinition> = {
     title: 'Border Control',
     place: 'BORDER',
     npcId: 'officer-border',
+    skill: 'Introductions',
     goalSummaryNative: 'Say hello, say where you are from, and where you are headed.',
     successCriteria:
       'The traveler greeted the officer, stated where they are from, and indicated a destination — in Spanish, however simply.',
@@ -70,6 +71,7 @@ export const SCENES: Record<string, SceneDefinition> = {
     title: 'The Night Market',
     place: 'MERCADO',
     npcId: 'vendor-market',
+    skill: 'Shopping & Numbers',
     goalSummaryNative: 'Buy a kilo of oranges and ask how much it costs.',
     successCriteria:
       'The traveler asked for a kilo of oranges (correct quantity word) AND asked the price — in Spanish.',
@@ -84,6 +86,7 @@ export const SCENES: Record<string, SceneDefinition> = {
     title: 'The Corner Café',
     place: 'CAFÉ',
     npcId: 'barista-cafe',
+    skill: 'Ordering Out',
     goalSummaryNative: 'Order a coffee the way the locals do, and say thank you.',
     successCriteria:
       'The traveler ordered a coffee (politely, with por favor or similar) and thanked the barista — in Spanish.',
@@ -98,6 +101,7 @@ export const SCENES: Record<string, SceneDefinition> = {
     title: 'The Harbor',
     place: 'PUERTO',
     npcId: 'sailor-harbor',
+    skill: 'Times & Directions',
     goalSummaryNative: 'Ask which boat goes to the island and what time it leaves.',
     successCriteria:
       'The traveler asked which boat/ferry goes to the island AND asked what time it departs — in Spanish.',
@@ -112,6 +116,7 @@ export const SCENES: Record<string, SceneDefinition> = {
     title: 'The Train Platform',
     place: 'ANDÉN',
     npcId: 'agent-platform',
+    skill: 'Talking Your Way Out',
     goalSummaryNative: 'Talk your way onto the last train — explain you missed yours.',
     successCriteria:
       'The traveler explained (in Spanish) that they missed their train and politely asked to board the last one.',

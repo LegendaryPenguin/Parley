@@ -37,11 +37,18 @@ export function mockChat(messages: ChatMsg[]): { text: string; attestation: type
     text = script.opening;
   } else {
     const player = lastPlayer(messages);
-    for (const rule of script.rules) {
-      if (rule.avoid && rule.avoid.some((w) => matchesAnyWord(player, w))) continue;
-      if (matchesAll(player, rule.needs)) {
-        text = rule.reply;
-        break;
+    // First: if the traveler made a known slip, the local gently recasts the
+    // correct phrasing in-language (a kind native's corrective recast).
+    const recast = (script.corrections ?? []).find((c) => c.recast && matchesAnyWord(player, c.bad));
+    if (recast?.recast) {
+      text = recast.recast;
+    } else {
+      for (const rule of script.rules) {
+        if (rule.avoid && rule.avoid.some((w) => matchesAnyWord(player, w))) continue;
+        if (matchesAll(player, rule.needs)) {
+          text = rule.reply;
+          break;
+        }
       }
     }
   }
