@@ -137,22 +137,32 @@ export const useGame = create<GameState>((set, get) => ({
     const vocab = mergeVocab(get().vocab, fresh);
     const trulyNew = fresh.filter((f) => !get().vocab.some((v) => v.id === f.id));
 
-    // 2. transcript -> 0G Storage (mock or live)
-    const { root, recordHash } = await saveSceneTranscript(
-      {
-        sceneId,
-        playerId: profile.id,
-        startedAt,
-        completedAt: now,
-        goalMet: judge.goalMet,
-        fluencyScore: judge.fluency,
-        wordsUsed: judge.newWordsUsed.map((w) => w.term),
-        attestation: judge.attestation,
-      },
-      turns,
-    );
+    // 2. transcript -> 0G Storage (mock or live). Fail-safe: if the live upload
+    //    fails (wallet not ready / SDK hiccup) we keep the game moving with a
+    //    local record rather than blocking the reward.
     const place = scene?.place ?? sceneId;
-    logStorage(place, root, !isMock);
+    const recMeta = {
+      sceneId,
+      playerId: profile.id,
+      startedAt,
+      completedAt: now,
+      goalMet: judge.goalMet,
+      fluencyScore: judge.fluency,
+      wordsUsed: judge.newWordsUsed.map((w) => w.term),
+      attestation: judge.attestation,
+    };
+    let root: string;
+    let recordHash: string;
+    let storedLive = !isMock;
+    try {
+      ({ root, recordHash } = await saveSceneTranscript(recMeta, turns));
+    } catch {
+      // live 0G Storage failed → local fallback so completion still succeeds
+      const { mockStorage } = await import("@/lib/og/mock-storage");
+      ({ root, recordHash } = await mockStorage.saveSceneTranscript(recMeta, turns));
+      storedLive = false;
+    }
+    logStorage(place, root, storedLive);
 
     // 3. anchor on 0G Chain
     let anchorTx: string | undefined;
