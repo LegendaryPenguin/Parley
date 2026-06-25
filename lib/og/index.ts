@@ -39,9 +39,15 @@ const STORAGE_MODE =
 const CHAIN_MODE =
   process.env.NEXT_PUBLIC_OG_CHAIN_MODE ?? process.env.NEXT_PUBLIC_OG_MODE ?? process.env.OG_MODE ?? 'mock';
 
+// Relayer (Option B): when on, the SERVER signs storage uploads + chain anchors
+// with the host's funded testnet key, so any visitor gets real on-chain records
+// with no wallet of their own. Takes precedence over the client storage/chain paths.
+const RELAYER = (process.env.NEXT_PUBLIC_OG_RELAYER ?? '') === '1';
+
 export const OG_MODE = STORAGE_MODE;
 export const isComputeMock = COMPUTE_MODE === 'mock';
-export const isMock = STORAGE_MODE === 'mock';
+export const isMock = !RELAYER && STORAGE_MODE === 'mock';
+export const isRelayer = RELAYER;
 export const isChainMock = CHAIN_MODE === 'mock';
 
 // ---------------- Compute (server-side) ----------------
@@ -115,6 +121,17 @@ export async function saveSceneTranscript(
   rec: Omit<SceneRecord, 'transcriptStorageRoot' | 'recordHash' | 'anchorTx'>,
   turns: DialogueTurn[],
 ): Promise<{ root: string; recordHash: string }> {
+  if (RELAYER) {
+    const res = await fetch('/api/storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rec, turns }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'storage failed');
+    const { root, recordHash } = await res.json();
+    await mockStorage.appendRecord({ ...rec, transcriptStorageRoot: root, recordHash });
+    return { root, recordHash };
+  }
   if (isMock) return mockStorage.saveSceneTranscript(rec, turns);
   const { liveStorage } = await import('./storage');
   return liveStorage.saveSceneTranscript(rec, turns);
@@ -133,6 +150,15 @@ export async function setAnchorTx(playerId: string, recordHash: string, txHash: 
 // ---------------- Chain (client-side, user signs) ----------------
 
 export async function anchor(recordHash: string): Promise<{ txHash: string }> {
+  if (RELAYER) {
+    const res = await fetch('/api/anchor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordHash }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'anchor failed');
+    return res.json();
+  }
   if (isChainMock) return mockChain.anchor(recordHash);
   const { liveChain } = await import('./chain');
   return liveChain.anchor(recordHash);
