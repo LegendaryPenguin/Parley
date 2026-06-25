@@ -6,6 +6,9 @@ Parley is an explorable, illustrated risograph world where the only way forward 
 
 Built for the **0G Zero Cup**, Parley is a game where the AI isn't a feature bolted on — it *is* the game. Remove 0G and you have an empty map with nothing to say, nothing remembered, and nothing to prove.
 
+### ▶️ Play it live: **[parley-five-weld.vercel.app](https://parley-five-weld.vercel.app)**
+Connect a wallet and play — every NPC turn runs on **live 0G Compute**, no setup or funds needed on your side.
+
 ![Parley architecture](docs/diagrams/parley-architecture.png)
 
 | The Scene (live on 0G) | The Atlas (stages) | The Passport (verified record) |
