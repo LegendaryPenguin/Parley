@@ -23,6 +23,7 @@ import {
   saveNPCMemory,
   isMock,
   isChainMock,
+  isRelayer,
 } from "@/lib/og";
 import { logStorage, logChain } from "@/lib/dev/txlog";
 import { getScene } from "@/lib/content/world";
@@ -170,7 +171,7 @@ export const useGame = create<GameState>((set, get) => ({
       const res = await anchor(recordHash);
       anchorTx = res.txHash;
       await setAnchorTx(profile.id, recordHash, anchorTx);
-      logChain(place, anchorTx, !isChainMock);
+      logChain(place, anchorTx, !isChainMock || isRelayer);
     } catch {
       anchorTx = undefined; // anchoring is best-effort; record still saved
     }
